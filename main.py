@@ -275,11 +275,7 @@ def run_analysis(raw_data):
         json=payload,
         timeout=300
     )
-  if not response.ok:
-    print("Status Code:", response.status_code)
-    print("Response Body:", response.text)
-
-response.raise_for_status()
+    response.raise_for_status()
     data = response.json()
     content = data["choices"][0]["message"]["content"]
 
