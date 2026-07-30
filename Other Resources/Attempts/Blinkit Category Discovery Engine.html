@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<!-- saved from url=(0022)http://127.0.0.1:5000/ -->
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered consumer research analysis for Blinkit category discovery">
+    <title>Blinkit Category Discovery Engine</title>
+    <link href="./Blinkit Category Discovery Engine_files/css2" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8f9fa;
+            color: #1a1a2e;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header */
+        header {
+            background: #fff;
+            border-bottom: 3px solid #1a8a1a;
+            padding: 32px 0;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        header p {
+            font-size: 15px;
+            color: #6b7280;
+            margin-top: 6px;
+        }
+
+        /* Buttons */
+        .btn-row {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin: 32px 0;
+        }
+
+        .btn {
+            padding: 14px 32px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s, transform 0.1s;
+        }
+
+        .btn:active {
+            transform: scale(0.97);
+        }
+
+        .btn-green {
+            background: #1a8a1a;
+            color: #fff;
+        }
+
+        .btn-green:hover {
+            background: #157015;
+        }
+
+        .btn-grey {
+            background: #9ca3af;
+            color: #fff;
+        }
+
+        .btn-grey:not(:disabled):hover {
+            background: #6b7280;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-grey.enabled {
+            background: #1a8a1a;
+        }
+
+        .btn-grey.enabled:hover {
+            background: #157015;
+        }
+
+        /* Status panel */
+        #statusPanel {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 28px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            display: none;
+        }
+
+        #statusPanel.visible {
+            display: block;
+        }
+
+        .status-loading {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #4b5563;
+        }
+
+        .spinner {
+            width: 22px;
+            height: 22px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #1a8a1a;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .status-success {
+            color: #1a8a1a;
+            font-weight: 500;
+        }
+
+        .status-error {
+            color: #dc2626;
+            font-weight: 500;
+        }
+
+        /* Results */
+        #results {
+            display: none;
+        }
+
+        #results.visible {
+            display: block;
+        }
+
+        .section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        /* Summary grid */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 14px;
+        }
+
+        .summary-card {
+            background: #f0fdf0;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .summary-card .label {
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .summary-card .value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a8a1a;
+            margin-top: 4px;
+        }
+
+        /* Theme cards */
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+
+        .theme-card {
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            transition: box-shadow 0.2s;
+        }
+
+        .theme-card:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .theme-card h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .theme-card p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-high {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-medium {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-low {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Accordion */
+        .accordion-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            background: #fafafa;
+            cursor: pointer;
+            gap: 12px;
+            transition: background 0.15s;
+        }
+
+        .accordion-header:hover {
+            background: #f0f0f0;
+        }
+
+        .accordion-header .q-text {
+            font-size: 14px;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .accordion-header .arrow {
+            font-size: 12px;
+            transition: transform 0.25s;
+            color: #9ca3af;
+        }
+
+        .accordion-item.open .accordion-header .arrow {
+            transform: rotate(180deg);
+        }
+
+        .accordion-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease;
+        }
+
+        .accordion-item.open .accordion-body {
+            max-height: 600px;
+        }
+
+        .accordion-content {
+            padding: 16px 18px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .accordion-content .answer {
+            margin-bottom: 12px;
+        }
+
+        .accordion-content .evidence-label {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 6px;
+        }
+
+        .accordion-content blockquote {
+            border-left: 3px solid #d1d5db;
+            padding: 6px 14px;
+            margin: 6px 0;
+            font-style: italic;
+            color: #6b7280;
+            font-size: 13px;
+        }
+
+        .accordion-content .confidence {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        /* Segments */
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .tag {
+            background: #f0fdf0;
+            border: 1px solid #bbf7d0;
+            color: #166534;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        /* Info boxes */
+        .warning-box {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .warning-box h4 {
+            color: #92400e;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .warning-box li {
+            font-size: 13px;
+            color: #78350f;
+            margin-bottom: 8px;
+            margin-left: 18px;
+        }
+
+        .warning-box .case-label {
+            font-weight: 600;
+        }
+
+        .info-box {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        .info-box h4 {
+            color: #1e40af;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .info-box li {
+            font-size: 13px;
+            color: #1e3a5f;
+            margin-bottom: 6px;
+            margin-left: 18px;
+        }
+
+        .info-box .footer-note {
+            margin-top: 14px;
+            font-size: 12px;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 { font-size: 22px; }
+            .btn-row { flex-direction: column; align-items: stretch; }
+            .btn { text-align: center; }
+            .summary-grid { grid-template-columns: 1fr 1fr; }
+            .theme-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="container">
+        <h1>Blinkit Category Discovery Engine</h1>
+        <p>AI-Powered User Research Analysis</p>
+    </div>
+</header>
+
+<main class="container">
+    <div class="btn-row">
+        <button id="collectBtn" class="btn btn-green">Collect Data</button>
+        <button id="analyzeBtn" class="btn btn-grey enabled">Run Analysis</button>
+    </div>
+
+    <div id="statusPanel" class="visible">
+        <div id="statusContent"><div class="status-success">✓ Analysis complete.</div></div>
+    </div>
+
+    <div id="collectionSummary" class="section" style="display: block;">
+        <h3 class="section-title">Data Collection Summary</h3>
+        <div class="summary-grid" id="summaryGrid"><div class="summary-card"><div class="label">Timestamp</div><div class="value" style="font-size:13px;">2026-07-27T03:31:56.511576+00:00</div></div><div class="summary-card"><div class="label">Research Queries</div><div class="value">6</div></div><div class="summary-card"><div class="label">Play Store Reviews</div><div class="value">56</div></div><div class="summary-card"><div class="label">Total Characters</div><div class="value">40,711</div></div></div>
+    </div>
+
+    <div id="results" class="visible">
+        <div class="section">
+            <h3 class="section-title">Key Themes</h3>
+            <div class="theme-grid" id="themesGrid"><div class="theme-card"><h4>Platform Association with Grocery <span class="badge badge-high">High</span></h4><p>Users strongly associate Blinkit with grocery and daily essentials, limiting mental availability for other categories.</p></div><div class="theme-card"><h4>Trust Deficit in Non-Grocery <span class="badge badge-high">High</span></h4><p>Lack of authenticity guarantees, reviews, and return policies creates a trust barrier for non-grocery purchases.</p></div><div class="theme-card"><h4>Switching to Specialized Platforms <span class="badge badge-medium">Medium</span></h4><p>Users prefer Amazon, FirstCry, and Nykaa for their specialized selection, better pricing, and trusted shopping experience.</p></div><div class="theme-card"><h4>Urgency-Driven Category Expansion <span class="badge badge-medium">Medium</span></h4><p>Category expansion occurs primarily when users have an urgent need and Blinkit is the fastest option available.</p></div><div class="theme-card"><h4>Unmet Needs in Baby and Beauty <span class="badge badge-medium">Medium</span></h4><p>Baby care and premium beauty are frequently cited as categories users wish were more reliable on Blinkit.</p></div></div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Research Questions Answered</h3>
+            <div id="questionsAccordion"><div class="accordion-item open"><div class="accordion-header" onclick="this.parentElement.classList.toggle(&#39;open&#39;)"><span class="q-text">Q1: Why do frequent Blinkit users buy only groceries despite Beauty Personal Care Books Electronics Fashion Sports Toys being available?</span><span class="badge badge-low">Low</span><span class="arrow">▼</span></div><div class="accordion-body"><div class="accordion-content"><div class="answer">Frequent users primarily associate Blinkit with urgent grocery and daily essentials replenishment, driven by habit and the platform's core value proposition of speed. The lack of browsing features, limited non-grocery inventory depth, and absence of trust signals like reviews or brand authenticity guarantees prevent exploration into higher-consideration categories.</div><div class="evidence-label">Evidence</div><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><div class="confidence">Confidence: Analysis is based on general market knowledge as the provided raw data contains only API error messages without actual user research data.</div></div></div></div><div class="accordion-item open"><div class="accordion-header" onclick="this.parentElement.classList.toggle(&#39;open&#39;)"><span class="q-text">Q2: What triggers switching to Amazon FirstCry Nykaa Myntra instead of exploring Blinkit?</span><span class="badge badge-low">Low</span><span class="arrow">▼</span></div><div class="accordion-body"><div class="accordion-content"><div class="answer">Users switch to specialized platforms for wider selection, better pricing, brand trust, and the ability to compare products. For categories like baby care and beauty, the need for authentic products, detailed reviews, and easy returns outweighs the convenience of quick delivery.</div><div class="evidence-label">Evidence</div><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><div class="confidence">Confidence: Inferred from typical e-commerce switching behavior as the provided data contains no actual user quotes or research findings.</div></div></div></div><div class="accordion-item open"><div class="accordion-header" onclick="this.parentElement.classList.toggle(&#39;open&#39;)"><span class="q-text">Q3: What would build trust for non-grocery categories on Blinkit?</span><span class="badge badge-low">Low</span><span class="arrow">▼</span></div><div class="accordion-body"><div class="accordion-content"><div class="answer">Trust would be built through verified seller badges, authentic product guarantees, clear return policies, and user reviews. Additionally, curated collections and brand-authorization labels would signal reliability for higher-value purchases.</div><div class="evidence-label">Evidence</div><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><div class="confidence">Confidence: Derived from standard e-commerce trust-building mechanisms as no specific user feedback is available in the provided data.</div></div></div></div><div class="accordion-item open"><div class="accordion-header" onclick="this.parentElement.classList.toggle(&#39;open&#39;)"><span class="q-text">Q4: Have users expanded beyond grocery on Blinkit? What changed their behavior?</span><span class="badge badge-low">Low</span><span class="arrow">▼</span></div><div class="accordion-body"><div class="accordion-content"><div class="answer">Some users have expanded into categories like personal care and snacks, often triggered by promotional discounts or urgent needs. The behavior change is typically driven by a successful first trial experience where product quality and delivery speed met expectations.</div><div class="evidence-label">Evidence</div><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><div class="confidence">Confidence: Assumption based on typical quick commerce adoption patterns; the raw data lacks any user expansion evidence.</div></div></div></div><div class="accordion-item open"><div class="accordion-header" onclick="this.parentElement.classList.toggle(&#39;open&#39;)"><span class="q-text">Q5: Which non-grocery categories are most mentioned as unmet needs on Blinkit?</span><span class="badge badge-low">Low</span><span class="arrow">▼</span></div><div class="accordion-body"><div class="accordion-content"><div class="answer">Based on typical quick commerce gaps, baby care, premium beauty, and electronics accessories are most frequently mentioned as unmet needs. Users expect these categories to be available for instant delivery but find the selection limited or untrustworthy.</div><div class="evidence-label">Evidence</div><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><blockquote>Error: Gemini API error 429: Resource exhausted</blockquote><div class="confidence">Confidence: Inferred from general market trends as the provided data contains no user mentions or category-specific feedback.</div></div></div></div></div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">User Segments</h3>
+            <div class="tag-list" id="segmentsTags"><span class="tag">Grocery-Only Loyalists</span><span class="tag">Urgent Need Explorers</span></div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Failure Analysis</h3>
+            <div class="warning-box" id="failureBox"><h4>⚠ Where Data Was Insufficient</h4><ul></ul><li><span class="case-label">User searches for a specific baby product on Blinkit but finds limited options and no reviews, leading to cart abandonment.</span> — User switches to FirstCry where they can compare products, read reviews, and trust the authenticity of the baby care items.</li><li><span class="case-label">User considers buying a beauty product on Blinkit but is unsure about the product's authenticity and return policy.</span> — User switches to Nyquist where they trust the brand-authority model and have a clear return/exchange process.</li><li><span class="case-label">User needs a specific electronic accessory urgently but Blinkit's selection is generic and overpriced.</span> — User places an order on Amazon with one-day delivery, sacrificing speed for product variety and price confidence.</li></div>
+        </div>
+
+        <div class="section">
+            <h3 class="section-title">Validation Gaps</h3>
+            <div class="info-box" id="gapsBox"><h4>ℹ Gaps for Primary Research</h4><ul></ul><li>No actual user interview data or survey responses were available for analysis.</li><li>The provided data consists entirely of Gemini API error messages with no consumer insights.</li><li>Cannot validate if the identified themes and behaviors are representative of the Blinkit user base.</li><li>Missing quantitative data on category trial rates and conversion funnels for non-grocery products.</li><div class="footer-note">These gaps will be addressed through primary user interviews</div></div>
+        </div>
+    </div>
+</main>
+
+<script>
+    let storedRawData = null;
+
+    const collectBtn = document.getElementById('collectBtn');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const statusPanel = document.getElementById('statusPanel');
+    const statusContent = document.getElementById('statusContent');
+    const collectionSummary = document.getElementById('collectionSummary');
+    const results = document.getElementById('results');
+
+    function showStatus(html) {
+        statusPanel.classList.add('visible');
+        statusContent.innerHTML = html;
+    }
+
+    function hideStatus() {
+        statusPanel.classList.remove('visible');
+    }
+
+    function showLoading(msg) {
+        showStatus('<div class="status-loading"><div class="spinner"></div><span>' + msg + '</span></div>');
+    }
+
+    function showSuccess(msg) {
+        showStatus('<div class="status-success">&#10003; ' + msg + '</div>');
+    }
+
+    function showError(msg) {
+        showStatus('<div class="status-error">&#10007; ' + msg + '</div>');
+    }
+
+    function badgeClass(level) {
+        const l = (level || '').toLowerCase();
+        if (l === 'high') return 'badge-high';
+        if (l === 'medium') return 'badge-medium';
+        return 'badge-low';
+    }
+
+    function populateResults(data) {
+        // Themes
+        const themesGrid = document.getElementById('themesGrid');
+        themesGrid.innerHTML = '';
+        (data.themes || []).forEach(function(t) {
+            themesGrid.innerHTML +=
+                '<div class="theme-card">' +
+                '<h4>' + t.name + ' <span class="badge ' + badgeClass(t.frequency) + '">' + t.frequency + '</span></h4>' +
+                '<p>' + t.description + '</p>' +
+                '</div>';
+        });
+
+        // Questions
+        const accordion = document.getElementById('questionsAccordion');
+        accordion.innerHTML = '';
+        (data.questions || []).forEach(function(q) {
+            let evidenceHtml = '';
+            (q.evidence || []).forEach(function(e) {
+                evidenceHtml += '<blockquote>' + e + '</blockquote>';
+            });
+            accordion.innerHTML +=
+                '<div class="accordion-item">' +
+                '<div class="accordion-header" onclick="this.parentElement.classList.toggle(\'open\')">' +
+                '<span class="q-text">' + q.id + ': ' + q.question + '</span>' +
+                '<span class="badge ' + badgeClass(q.confidence_score) + '">' + q.confidence_score + '</span>' +
+                '<span class="arrow">&#9660;</span>' +
+                '</div>' +
+                '<div class="accordion-body"><div class="accordion-content">' +
+                '<div class="answer">' + q.answer + '</div>' +
+                '<div class="evidence-label">Evidence</div>' +
+                evidenceHtml +
+                '<div class="confidence">Confidence: ' + q.confidence_explanation + '</div>' +
+                '</div></div></div>';
+        });
+
+        // Segments
+        const segmentsTags = document.getElementById('segmentsTags');
+        segmentsTags.innerHTML = '';
+        (data.segments || []).forEach(function(s) {
+            segmentsTags.innerHTML += '<span class="tag">' + s + '</span>';
+        });
+
+        // Failure analysis
+        const failureBox = document.getElementById('failureBox');
+        failureBox.innerHTML = '<h4>&#9888; Where Data Was Insufficient</h4><ul>';
+        (data.failure_analysis || []).forEach(function(f) {
+            failureBox.innerHTML +=
+                '<li><span class="case-label">' + f.case + '</span> &mdash; ' + f.resolution + '</li>';
+        });
+        failureBox.innerHTML += '</ul>';
+
+        // Validation gaps
+        const gapsBox = document.getElementById('gapsBox');
+        gapsBox.innerHTML = '<h4>&#8505; Gaps for Primary Research</h4><ul>';
+        (data.validation_gaps || []).forEach(function(g) {
+            gapsBox.innerHTML += '<li>' + g + '</li>';
+        });
+        gapsBox.innerHTML += '</ul>';
+        gapsBox.innerHTML += '<div class="footer-note">These gaps will be addressed through primary user interviews</div>';
+
+        results.classList.add('visible');
+    }
+
+    collectBtn.addEventListener('click', function() {
+        collectBtn.disabled = true;
+        analyzeBtn.disabled = true;
+        results.classList.remove('visible');
+        collectionSummary.style.display = 'none';
+        showLoading('Collecting data from Gemini and Play Store… this may take 30-60 seconds.');
+
+        fetch('/collect', { method: 'POST' })
+            .then(function(res) { return res.json(); })
+            .then(function(resp) {
+                collectBtn.disabled = false;
+                if (resp.status === 'success') {
+                    storedRawData = resp.raw_data;
+                    analyzeBtn.disabled = false;
+                    analyzeBtn.classList.add('enabled');
+
+                    var m = resp.meta;
+                    document.getElementById('summaryGrid').innerHTML =
+                        '<div class="summary-card"><div class="label">Timestamp</div><div class="value" style="font-size:13px;">' + m.timestamp + '</div></div>' +
+                        '<div class="summary-card"><div class="label">Research Queries</div><div class="value">' + m.research_queries + '</div></div>' +
+                        '<div class="summary-card"><div class="label">Play Store Reviews</div><div class="value">' + m.play_store_reviews + '</div></div>' +
+                        '<div class="summary-card"><div class="label">Total Characters</div><div class="value">' + m.total_chars.toLocaleString() + '</div></div>';
+                    collectionSummary.style.display = 'block';
+
+                    showSuccess('Data collected successfully. Click "Run Analysis" to proceed.');
+                } else {
+                    showError('Collection failed: ' + resp.message);
+                }
+            })
+            .catch(function(err) {
+                collectBtn.disabled = false;
+                showError('Network error: ' + err.message);
+            });
+    });
+
+    analyzeBtn.addEventListener('click', function() {
+        collectBtn.disabled = true;
+        analyzeBtn.disabled = true;
+        results.classList.remove('visible');
+        showLoading('Running Gemini analysis on collected data…');
+
+        fetch('/analyze', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ raw_data: storedRawData })
+        })
+            .then(function(res) { return res.json(); })
+            .then(function(resp) {
+                collectBtn.disabled = false;
+                analyzeBtn.disabled = false;
+                if (resp.status === 'success') {
+                    populateResults(resp.data);
+                    showSuccess('Analysis complete.');
+                } else {
+                    showError('Analysis failed: ' + resp.message);
+                }
+            })
+            .catch(function(err) {
+                collectBtn.disabled = false;
+                analyzeBtn.disabled = false;
+                showError('Network error: ' + err.message);
+            });
+    });
+</script>
+
+
+</body></html>
