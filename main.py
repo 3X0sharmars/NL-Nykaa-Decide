@@ -182,8 +182,16 @@ def validate_collected_data(reviews_text, source_status):
 
 def run_analysis(raw_data):
     url = "https://integrate.api.nvidia.com/v1/chat/completions"
+
+    api_key = os.getenv("NVIDIA_API_KEY", "").strip()
+
+    print("=== NVIDIA DEBUG ===")
+    print("API Key Exists:", bool(api_key))
+    print("API Key Length:", len(api_key))
+    print("API Key Prefix:", api_key[:10])
+
     headers = {
-        "Authorization": f"Bearer {os.getenv('NVIDIA_API_KEY')}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json"
     }
 
@@ -267,7 +275,11 @@ def run_analysis(raw_data):
         json=payload,
         timeout=300
     )
-    response.raise_for_status()
+  if not response.ok:
+    print("Status Code:", response.status_code)
+    print("Response Body:", response.text)
+
+response.raise_for_status()
     data = response.json()
     content = data["choices"][0]["message"]["content"]
 
