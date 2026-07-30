@@ -250,7 +250,7 @@ def run_analysis(raw_data):
     )
 
     payload = {
-        "model": "deepseek-ai/deepseek-v4-pro",
+        "model": "meta/llama-3.1-8b-instruct",
         "messages": [
             {
                 "role": "system",
@@ -276,7 +276,7 @@ def run_analysis(raw_data):
         url,
         headers=headers,
         json=payload,
-        timeout=300
+        timeout=120
     )
 
     if response.status_code != 200:
