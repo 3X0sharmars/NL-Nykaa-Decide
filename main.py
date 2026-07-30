@@ -185,10 +185,6 @@ def run_analysis(raw_data):
 
     api_key = os.getenv("NVIDIA_API_KEY", "").strip()
 
-    print("=== NVIDIA DEBUG ===")
-    print("API Key Exists:", bool(api_key))
-    print("API Key Length:", len(api_key))
-    print("API Key Prefix:", api_key[:10])
 
     headers = {
         "Authorization": f"Bearer {api_key}",
@@ -269,12 +265,30 @@ def run_analysis(raw_data):
         "max_tokens": 2000
     }
 
+    print("========== REQUEST INFO ==========")
+    print("API Key Exists:", bool(api_key))
+    print("API Key Length:", len(api_key))
+    print("Model:", payload["model"])
+    print("Raw Data Length:", len(raw_data))
+    print("==================================")
+
     response = requests.post(
         url,
         headers=headers,
         json=payload,
         timeout=300
     )
+
+    if response.status_code != 200:
+        print("========== NVIDIA ERROR ==========")
+        print("Status:", response.status_code)
+        print("Headers:", dict(response.headers))
+        print("Response Body:")
+        print(response.text)
+        print("Request Model:", payload.get("model"))
+        print("Request URL:", url)
+        print("==================================")
+
     response.raise_for_status()
     data = response.json()
     content = data["choices"][0]["message"]["content"]
