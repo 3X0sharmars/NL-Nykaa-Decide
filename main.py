@@ -428,6 +428,73 @@ def analyze():
         })
 
 
+@app.route("/api/recommend", methods=["POST", "OPTIONS"])
+def recommend():
+    if request.method == "OPTIONS":
+        response = jsonify({})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type")
+        response.headers.add("Access-Control-Allow-Methods", "POST, OPTIONS")
+        return response
+    
+    try:
+        data = request.json
+        cart = data.get("cart", {})
+        prompt = data.get("prompt", "")
+
+        headers = {
+            "Authorization": f"Bearer {os.getenv('NVIDIA_API_KEY')}",
+            "Content-Type": "application/json"
+        }
+
+        payload = {
+            "model": "meta/llama-3.1-8b-instruct",
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "You are a product recommendation engine. Always respond with pure valid JSON only. No markdown. No backticks. No explanation."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            "temperature": 0.4,
+            "max_tokens": 1000
+        }
+
+        response = requests.post(
+            "https://integrate.api.nvidia.com/v1/chat/completions",
+            headers=headers,
+            json=payload,
+            timeout=60
+        )
+        response.raise_for_status()
+        result = response.json()
+        content = result["choices"][0]["message"]["content"]
+        
+        # Clean markdown if present
+        content = content.strip()
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*", "", content)
+            content = re.sub(r"\s*```$", "", content)
+        
+        resp = jsonify({
+            "status": "success",
+            "data": json.loads(content)
+        })
+        resp.headers.add("Access-Control-Allow-Origin", "*")
+        return resp
+        
+    except Exception as e:
+        resp = jsonify({
+            "status": "error",
+            "message": str(e)
+        })
+        resp.headers.add("Access-Control-Allow-Origin", "*")
+        return resp, 500
+
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
