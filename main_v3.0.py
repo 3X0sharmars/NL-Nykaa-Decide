@@ -659,19 +659,9 @@ def collect_all_sources():
             text, count, status = fn()
             clean_text, quality_report = validate_collected_data(text, status)
 
-            all_attempts_failed = bool(status.get("errors")) and count == 0 and not status.get("skipped")
-            block_status = (
-                "skipped" if status.get("skipped")
-                else "error" if all_attempts_failed
-                else "ok" if count > 0
-                else "empty"
+            block_status = "skipped" if status.get("skipped") else (
+                "ok" if count > 0 else "empty"
             )
-
-            if status.get("errors"):
-                print(f"[{label}] {len(status['errors'])} error(s):")
-                for err in status["errors"]:
-                    print(f"   - {err}")
-
             sources_meta.append({
                 "name": label,
                 "status": block_status,

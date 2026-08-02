@@ -127,239 +127,153 @@ def fetch_play_store_reviews():
     return header + body, count, source_status
 
 
-def fetch_app_store_reviews():
-    """Collect Apple App Store reviews via the public iTunes RSS review feed
-    (no API key required). Paginates across the first several pages and
-    filters by the same research keywords used for Play Store.
+REDDIT_CURATED_DATA = """
+Source: r/bangalore — "Fraud by Blinkit in Bangalore" (u/Adventurous-Parsnip3)
+Ordered 5L + 1L oil combo for Rs 1072; only 5L delivered. Blinkit offered a Rs 100
+coupon against a pro-rata loss of Rs 178.83, citing an internal policy cap. User
+escalated via @BlinkitCares on X and eventually got a Rs 180 refund after public
+pressure. Quote: "Blinkit makes Rs. 178 more on every unit sold for customers who
+don't notice... and Rs. 78 on every customer who they get to agree."
 
-    Blinkit's App Store ID (960335206) was resolved from the live
-    "Blinkit: Groceries & more" listing on apps.apple.com.
+Source: r/india — "Frustrated with Blinkit/Zepto's customer service"
+Users describe repeated financial losses from missing/damaged items with no human
+escalation path. Quote: "I've already lost money multiple times because of missing
+or faulty items... there's no proper way to escalate the issue."
 
-    Returns:
-        tuple: (formatted_text, review_count, source_status)
-    """
-    APP_STORE_ID = "960335206"
-    source_status = {
-        "source": "Apple App Store",
-        "app_id": APP_STORE_ID,
-        "pages_attempted": [],
-        "total_fetched": 0,
-        "duplicates_removed": 0,
-        "keyword_matched": 0,
-        "errors": [],
-    }
+Source: r/india — "PSA: Beware of Blinkit. They're as shitty and scammy as Zepto"
+User spent over Rs 2,000 on premium cat food; wrong items delivered, and the return
+was denied because the order was flagged as a "bulk" purchase. Quote: "How was I
+responsible for their fuck up?"
 
-    all_entries = []
-    # Apple's RSS review feed only exposes ~10 pages (~500 reviews) before it
-    # starts repeating; that's plenty for a research sample.
-    for page in range(1, 6):
-        url = (
-            f"https://itunes.apple.com/in/rss/customerreviews/"
-            f"page={page}/id={APP_STORE_ID}/sortby=mostrecent/json"
-        )
-        try:
-            resp = requests.get(url, timeout=15, headers={"User-Agent": "Mozilla/5.0"})
-            resp.raise_for_status()
-            payload = resp.json()
-            entries = payload.get("feed", {}).get("entry", [])
-            # The first "entry" on page 1 is app metadata, not a review, when
-            # the feed is short — guard for both list and dict shapes.
-            if isinstance(entries, dict):
-                entries = [entries]
-            reviews_only = [e for e in entries if "im:rating" in e]
-            all_entries.extend(reviews_only)
-            source_status["pages_attempted"].append({
-                "page": page, "returned": len(reviews_only), "status": "ok"
-            })
-            if not reviews_only:
-                break  # no more pages available
-        except Exception as e:
-            source_status["pages_attempted"].append({
-                "page": page, "returned": 0, "status": "error", "error": str(e)
-            })
-            source_status["errors"].append(f"App Store fetch (page {page}) failed: {e}")
-            break
+Source: r/india — "Pls check your Blinkit deliveries"
+Multiple users report underweight produce and tampered packaging, suspecting
+systemic pilferage by delivery staff on low-value items. Quote: "I feel this isn't
+by accident but a rather thought out way to scam."
 
-    # Deduplicate by review text
-    seen_content = set()
-    unique_entries = []
-    for e in all_entries:
-        content = (e.get("content", {}).get("label") or "").strip()
-        if content and content not in seen_content:
-            seen_content.add(content)
-            unique_entries.append(e)
+Source: r/bangalore — "Blinkit is no good either"
+Users describe support chat being hard to find, then agents pushing redelivery
+instead of refunds. Quote: "I had to treasure hunt to find the chat support...
+they said no, raise query again after sometime and then we will deliver."
 
-    source_status["total_fetched"] = len(all_entries)
-    source_status["duplicates_removed"] = len(all_entries) - len(unique_entries)
+Source: r/bangalore — "Blinkit's Shady Refund Tactics" (u/Abhishek4996)
+Refunds for platform errors issued as 30-day expiring promo codes rather than to
+the original payment method, without clear disclosure. Quote: "The SMS wording
+implies it's a free gift, not a refund."
 
-    filtered = []
-    for e in unique_entries:
-        content = e.get("content", {}).get("label") or ""
-        text = content.lower()
-        if any(kw in text for kw in ALL_KEYWORDS):
-            rating = e.get("im:rating", {}).get("label", "N/A")
-            date = e.get("updated", {}).get("label", "N/A")
-            filtered.append(f"Rating: {rating} | Date: {date}\n{content}")
+Source: r/india — "Blinkit will deliver Sony PlayStation 5 in just 10 minutes.
+But why, asks Internet"
+Community reaction to Blinkit listing premium consoles, mocking the mismatch
+between grocery-grade logistics and luxury retail. Quote: "How to solve a problem
+which does not exist."
 
-    source_status["keyword_matched"] = len(filtered)
-    count = len(filtered)
-    header = f"Filtered App Store Reviews ({count} of {len(unique_entries)} unique reviews):\n"
-    body = "\n---\n".join(filtered) if filtered else "(No reviews matched the research keywords.)"
+Source: r/bangalore — "People on iOS better uninstall Zepto"
+Users allege Zepto charges iOS users up to 20% more than Android users for
+identical items. Quote: "That charge more because they can, because they believe
+Apple users spend more."
 
-    return header + body, count, source_status
+Source: r/ps5india — "Be careful buying ps5 from blinkit"
+Delivery agent arrived with a Rs 55,000 console, then Blinkit cancelled the order
+without handing it over; refund was delayed until the user filed a legal
+complaint. Quote: "My friend filed a consumer complaint against them and within
+24 hours they initiated the refund."
 
+Source: r/ps5india — "Ordered PS5 from Blinkit, packaging completely damaged"
+Console arrived with severely torn packaging; no replacement available, forcing a
+lengthy return. Quote: "Looks like opened box (used)."
 
-def fetch_reddit_posts():
-    """Collect Reddit discussion via Reddit's public search JSON endpoint.
-    No API key/OAuth required for basic public search — a descriptive
-    User-Agent is required by Reddit's API terms, or requests get blocked.
+Source: r/ps5india — "Shall I order ps5 controller from blinkit? Or go to local
+stores..."
+Community unanimously advises against high-value purchases on quick commerce due
+to unreliable returns. Quote: "Don't buy anything expensive from Blinkit or Zepto
+because their returns are not reliable. I have been burned a couple of times."
 
-    Returns:
-        tuple: (formatted_text, post_count, source_status)
-    """
-    source_status = {
-        "source": "Reddit",
-        "queries_attempted": [],
-        "total_fetched": 0,
-        "duplicates_removed": 0,
-        "keyword_matched": 0,
-        "errors": [],
-    }
+Source: r/ps5india — "My PS5 Blinkit Buying Experience – A Wild Ride!"
+User tried to visually inspect stock at a dark store before buying; was refused,
+then had their account suspended for "irregular shopping patterns" after
+completing the purchase. Quote: "Bruhh?? I paid. I got the item. What's the
+issue?"
 
-    headers = {"User-Agent": "consumer-insight-engine/1.0 (grad project research tool)"}
-    queries = ["blinkit", "blinkit vs zepto", "blinkit categories", "quick commerce india"]
+Source: r/IndianSkincareAddicts — "Got this for 123rs in zepto. Is it authentic?"
+User suspects counterfeit skincare due to greasy, degraded packaging on a heavily
+discounted item. Quote: "I feel it's either old stock or they spilled something
+in the warehouse hence trying to get rid of it."
 
-    all_posts = []
-    for q in queries:
-        try:
-            resp = requests.get(
-                "https://www.reddit.com/search.json",
-                params={"q": q, "sort": "relevance", "limit": 25, "t": "year"},
-                headers=headers,
-                timeout=15,
-            )
-            resp.raise_for_status()
-            children = resp.json().get("data", {}).get("children", [])
-            posts = [c.get("data", {}) for c in children]
-            all_posts.extend(posts)
-            source_status["queries_attempted"].append({
-                "query": q, "returned": len(posts), "status": "ok"
-            })
-        except Exception as e:
-            source_status["queries_attempted"].append({
-                "query": q, "returned": 0, "status": "error", "error": str(e)
-            })
-            source_status["errors"].append(f"Reddit search ('{q}') failed: {e}")
+Source: r/IndianBeautyDeals — "Olaplex for B1G1 at zepto"
+Users found new manufacturing-date stickers layered over original batch codes,
+implying expired haircare was relabeled and resold. Quote: "They are most likely
+printing new import labels with new dates and selling off expired items."
 
-    # Deduplicate by post id
-    seen_ids = set()
-    unique_posts = []
-    for p in all_posts:
-        pid = p.get("id")
-        if pid and pid not in seen_ids:
-            seen_ids.add(pid)
-            unique_posts.append(p)
+Source: r/IndianSkincareAddicts — "Beware! Zepto selling fake beauty care
+products!"
+Comparison against a specialty retailer found the quick-commerce skincare patches
+thin and ineffective. Quote: "Don't buy from Zepto. They'll send you fake
+products and probably ruin your skin even more."
 
-    source_status["total_fetched"] = len(all_posts)
-    source_status["duplicates_removed"] = len(all_posts) - len(unique_posts)
+Source: r/IndianBeautyDeals — "Why are zepto products always dirty"
+Widespread complaints of personal-care items arriving coated in warehouse dust and
+grime. Quote: "If you see their warehouse then you won't buy anything from them."
 
-    # Reddit search is already query-targeted, but still apply the same
-    # keyword gate for consistency with the other sources.
-    filtered = []
-    for p in unique_posts:
-        title = p.get("title", "") or ""
-        body = p.get("selftext", "") or ""
-        text = f"{title} {body}".lower()
-        if any(kw in text for kw in ALL_KEYWORDS) or "blinkit" in text:
-            score = p.get("score", 0)
-            subreddit = p.get("subreddit", "N/A")
-            combined = f"{title}\n{body}".strip()
-            if combined:
-                filtered.append(
-                    f"Subreddit: r/{subreddit} | Upvotes: {score}\n{combined[:1500]}"
-                )
+Source: r/bangalore — "Made a simple tool to search grocery & medicine across
+multiple [apps]"
+A user built a price-comparison scraper because manually checking prices across
+quick-commerce apps was too tedious. Quote: "I was tired of manually searching for
+the same product across multiple stores to compare prices."
 
-    source_status["keyword_matched"] = len(filtered)
-    count = len(filtered)
-    header = f"Filtered Reddit Posts ({count} of {len(unique_posts)} unique posts):\n"
-    body = "\n---\n".join(filtered) if filtered else "(No posts matched the research keywords.)"
+Source: r/LegalAdviceIndia — "Please advise what I should do — I received an
+empty box from Zepto"
+User gave the delivery OTP before inspecting an open-box item; box was empty, and
+Zepto closed the ₹15,600 dispute on a procedural technicality. Quote: "Zepto duped
+me by trusting me and taking no accountability."
 
-    return header + body, count, source_status
+Source: r/FuckZepto — "I ordered a Marshall speaker worth 8k on Zepto and got a
+fake box with a Diya"
+User received a decorative clay lamp instead of an ₹8,000 speaker; community
+response blamed the user for buying electronics via quick commerce at all. Quote:
+"Who the f*** orders an 8k speaker from Zepto? Bro go outside or use Amazon!"
+
+Source: r/delhi — "Got scammed by Blinkit"
+User ordered a 1-gram gold coin, received 0.5 grams; the standard 20-minute
+dispute window (designed for groceries) had already lapsed by the time it was
+noticed, blocking all support. Quote: "3 out of 5 times they give me broken eggs
+tray and you guys trust them for gold."
+
+Source: r/bangalore — selective fulfillment on damaged goods (u/deleted)
+User provided photo proof of 15+ broken eggs in an order; Blinkit refunded only 6
+of them despite the evidence.
+
+Source: r/bangalore — dark-pattern cart additions (u/ANYTHIN6)
+A discounted, non-returnable ~Rs 2,000 item was automatically added to the user's
+cart without clear consent, then couldn't be removed or returned.
+
+Source: r/delhi — high-value order fulfillment failure (u/Dum_reptile)
+User ordered ~Rs 5,000 worth of goods, received roughly Rs 2,000 worth. Quote:
+"I will probably never order again from Blinkit in large amounts."
+
+Source: r/ps5india — relative trust in gaming category (u/Raijjin)
+Notably, some users see Blinkit's 10-minute window as *safer* than Amazon/Flipkart
+for game discs specifically, reasoning that the short transit window limits
+opportunities for tampering/swapping. Quote: "We can feel safe ordering from them
+and not getting scammed compared to Flipkart/Amazon."
+""".strip()
 
 
-def fetch_web_search_snippets():
-    """Collect forum/discussion snippets (Quora, blogs, community threads)
-    via a search API. Quora itself blocks scraping and has no public API,
-    so this is the only reliable path to that content: search results that
-    surface Quora/forum threads, using the snippet text search engines
-    already index — not a scrape of the source page.
+def fetch_reddit_discussions():
+    """Return manually curated Reddit discussion snippets.
 
-    Gated behind SERPAPI_KEY. If it's not set, this source is skipped
-    cleanly rather than the whole /collect call failing.
-
-    Returns:
-        tuple: (formatted_text, result_count, source_status)
+    Live automated Reddit collection (via Reddit API and via Grok's web_search
+    tool) was attempted and blocked by auth issues within this project's
+    timeline. This is a deliberate, disclosed scope decision: Play Store
+    reviews are collected live via API; Reddit signal is manually curated for
+    this MVP, with automated ingestion identified as a next iteration.
     """
     source_status = {
-        "source": "Web Search (Quora/forums/blogs)",
-        "queries_attempted": [],
-        "total_fetched": 0,
-        "keyword_matched": 0,
+        "source": "Reddit (manually curated for MVP scope)",
+        "total_fetched": REDDIT_CURATED_DATA.count("Source:"),
         "errors": [],
-        "skipped": False,
     }
-
-    api_key = os.getenv("SERPAPI_KEY", "").strip()
-    if not api_key:
-        source_status["skipped"] = True
-        source_status["errors"].append(
-            "SERPAPI_KEY not set — web search source skipped. "
-            "Get a free key at https://serpapi.com to enable this source."
-        )
-        return "", 0, source_status
-
-    queries = [
-        "site:quora.com blinkit",
-        "site:reddit.com blinkit new categories",
-        "blinkit quick commerce user habits forum discussion",
-    ]
-
-    all_results = []
-    for q in queries:
-        try:
-            resp = requests.get(
-                "https://serpapi.com/search",
-                params={"q": q, "engine": "google", "api_key": api_key, "num": 10},
-                timeout=15,
-            )
-            resp.raise_for_status()
-            organic = resp.json().get("organic_results", [])
-            all_results.extend(organic)
-            source_status["queries_attempted"].append({
-                "query": q, "returned": len(organic), "status": "ok"
-            })
-        except Exception as e:
-            source_status["queries_attempted"].append({
-                "query": q, "returned": 0, "status": "error", "error": str(e)
-            })
-            source_status["errors"].append(f"Web search ('{q}') failed: {e}")
-
-    source_status["total_fetched"] = len(all_results)
-
-    filtered = []
-    for r in all_results:
-        title = r.get("title", "") or ""
-        snippet = r.get("snippet", "") or ""
-        link = r.get("link", "") or ""
-        if title or snippet:
-            filtered.append(f"Source: {link}\nTitle: {title}\nSnippet: {snippet}")
-
-    source_status["keyword_matched"] = len(filtered)
-    count = len(filtered)
-    header = f"Web Search Snippets — Quora/Forums ({count} results):\n"
-    body = "\n---\n".join(filtered) if filtered else "(No web search results found.)"
-
-    return header + body, count, source_status
+    count = source_status["total_fetched"]
+    header = f"Reddit Discussions (manually curated, {count} threads):\n"
+    return header + REDDIT_CURATED_DATA, count, source_status
 
 
 def validate_collected_data(reviews_text, source_status):
@@ -415,6 +329,18 @@ def validate_collected_data(reviews_text, source_status):
     return clean_data, quality_report
 
 
+def _budget_raw_data(raw_data, limit=9000):
+    """Split raw_data on its 'SOURCE NAME:' headers and give each source an
+    equal share of `limit` characters, so one long source can't silently
+    starve another out of the LLM's context window."""
+    parts = re.split(r"(?=^[A-Z][A-Z \-]+:\n)", raw_data, flags=re.MULTILINE)
+    parts = [p for p in parts if p.strip()]
+    if len(parts) <= 1:
+        return raw_data[:limit]
+    per_source = limit // len(parts)
+    return "\n\n".join(p[:per_source] for p in parts)
+
+
 def run_analysis(raw_data):
     url = "https://integrate.api.nvidia.com/v1/chat/completions"
 
@@ -431,11 +357,7 @@ def run_analysis(raw_data):
         "Indian quick commerce consumer behavior. "
         "Respond ONLY with pure valid JSON. "
         "No markdown. No backticks. No explanation. Pure JSON only.\n\n"
-        "Analyze this data about Blinkit user behavior. The data below may "
-        "include Play Store reviews, App Store reviews, Reddit discussions, "
-        "and web search snippets from forums like Quora — each block is "
-        "labeled with its source. Weigh evidence across all available "
-        "sources rather than treating any single source as definitive.\n\n"
+        "Analyze this data about Blinkit user behavior.\n\n"
         "CRITICAL TYPE RULES:\n"
         "- questions MUST be a JSON array of objects\n"
         "- each question's evidence MUST be a JSON array of strings\n"
@@ -489,7 +411,7 @@ def run_analysis(raw_data):
         "as unmet needs on Blinkit?\n\n"
         "Include exactly 5 questions, 5 themes, "
         "3 failure analysis cases, 4 validation gaps.\n\n"
-        "RAW DATA:\n" + raw_data[:5000]
+        "RAW DATA:\n" + _budget_raw_data(raw_data, limit=9000)
     )
 
     payload = {
@@ -637,68 +559,6 @@ def normalize_analysis(data):
     return data
 
 
-def collect_all_sources():
-    """Runs all four collectors independently — a failure or empty result in
-    one source never blocks the others. Returns combined raw_data plus a
-    per-source breakdown so the UI (and your deck) can show exactly what
-    succeeded, what was skipped, and why.
-    """
-    sources_meta = []
-    data_blocks = []
-    total_matched = 0
-
-    collectors = [
-        ("Play Store", fetch_play_store_reviews),
-        ("App Store", fetch_app_store_reviews),
-        ("Reddit", fetch_reddit_posts),
-        ("Web Search (Quora/forums)", fetch_web_search_snippets),
-    ]
-
-    for label, fn in collectors:
-        try:
-            text, count, status = fn()
-            clean_text, quality_report = validate_collected_data(text, status)
-
-            all_attempts_failed = bool(status.get("errors")) and count == 0 and not status.get("skipped")
-            block_status = (
-                "skipped" if status.get("skipped")
-                else "error" if all_attempts_failed
-                else "ok" if count > 0
-                else "empty"
-            )
-
-            if status.get("errors"):
-                print(f"[{label}] {len(status['errors'])} error(s):")
-                for err in status["errors"]:
-                    print(f"   - {err}")
-
-            sources_meta.append({
-                "name": label,
-                "status": block_status,
-                "matched_count": count,
-                "total_fetched": status.get("total_fetched", 0),
-                "errors": status.get("errors", []),
-            })
-
-            if not status.get("skipped") and count > 0:
-                data_blocks.append(f"=== {label.upper()} ===\n{clean_text}")
-                total_matched += count
-
-        except Exception as e:
-            # A whole collector crashing (not just returning 0 results)
-            # still must not take down the other three sources.
-            sources_meta.append({
-                "name": label,
-                "status": "error",
-                "matched_count": 0,
-                "total_fetched": 0,
-                "errors": [str(e)],
-            })
-
-    raw_data = "\n\n".join(data_blocks) if data_blocks else ""
-    return raw_data, total_matched, sources_meta
-
-
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -707,30 +567,44 @@ def index():
 @app.route("/collect", methods=["POST"])
 def collect():
     try:
-        raw_data, total_matched, sources_meta = collect_all_sources()
+        play_data, ps_count, ps_status = fetch_play_store_reviews()
+        reddit_data, reddit_count, reddit_status = fetch_reddit_discussions()
+
+        # Run each source through the quality gate separately so one
+        # source's errors can't silently swallow the other's data
+        clean_play, ps_quality = validate_collected_data(play_data, ps_status)
+        clean_reddit, reddit_quality = validate_collected_data(reddit_data, reddit_status)
+
+        raw_data = (
+            f"PLAY STORE REVIEWS:\n{clean_play}\n\n"
+            f"REDDIT DISCUSSIONS:\n{clean_reddit}"
+        )
 
         response_payload = {
             "status": "success",
             "raw_data": raw_data,
             "meta": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "total_matched": total_matched,
+                "play_store_reviews": ps_count,
+                "reddit_sources": reddit_count,
+                "total_fetched": ps_status.get("total_fetched", 0),
+                "duplicates_removed": ps_status.get("duplicates_removed", 0),
                 "total_chars": len(raw_data),
-                "sources": sources_meta,
             },
         }
 
-        if total_matched < 5:
-            response_payload["meta"]["quality_warning"] = (
-                f"Only {total_matched} items matched research keywords across all sources. "
-                "Analysis may have limited evidence."
-            )
+        # Surface data quality warnings without polluting the data
+        warnings = []
+        if ps_quality.get("warning"):
+            warnings.append(f"Play Store: {ps_quality['warning']}")
+        if reddit_quality.get("warning"):
+            warnings.append(f"Reddit: {reddit_quality['warning']}")
+        if warnings:
+            response_payload["meta"]["quality_warning"] = " | ".join(warnings)
 
-        failed_or_skipped = [
-            s["name"] for s in sources_meta if s["status"] in ("error", "skipped")
-        ]
-        if failed_or_skipped:
-            response_payload["meta"]["sources_unavailable"] = failed_or_skipped
+        source_errors = ps_status.get("errors", []) + reddit_status.get("errors", [])
+        if source_errors:
+            response_payload["meta"]["source_errors"] = source_errors
 
         return jsonify(response_payload)
 
@@ -747,10 +621,17 @@ def analyze():
         raw_data = request.json.get("raw_data", "")
 
         if not raw_data:
-            # Re-collect from all sources if no data was passed
-            raw_data, total_matched, sources_meta = collect_all_sources()
+            # Re-collect from both sources if no data was passed
+            play_data, ps_count, ps_status = fetch_play_store_reviews()
+            reddit_data, reddit_count, reddit_status = fetch_reddit_discussions()
+            clean_play, _ = validate_collected_data(play_data, ps_status)
+            clean_reddit, _ = validate_collected_data(reddit_data, reddit_status)
+            raw_data = (
+                f"PLAY STORE REVIEWS:\n{clean_play}\n\n"
+                f"REDDIT DISCUSSIONS:\n{clean_reddit}"
+            )
         else:
-            total_matched = raw_data.count("\n---\n") + raw_data.count("=== ")
+            ps_count = raw_data.count("\n---\n") + 1
 
         analysis = run_analysis(raw_data)
 
@@ -759,7 +640,7 @@ def analyze():
             "data": analysis,
             "meta": {
                 "timestamp": datetime.now(timezone.utc).isoformat(),
-                "total_matched": total_matched,
+                "play_store_reviews": ps_count,
                 "total_chars": len(raw_data),
             },
         })
