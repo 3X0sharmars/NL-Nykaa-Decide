@@ -1,0 +1,37 @@
+[21:19:19] Reddit: SKIPPED by flag (block already established).
+[21:19:35] Play Store: Myntra (com.myntra.android) -- paging...
+[21:24:12]   scanned 30000 reviews
+[21:24:18]   retained 396 behaviour-matched units
+[21:24:18] Play Store: AJIO (com.ril.ajio) -- paging...
+[21:29:44]   scanned 30000 reviews
+[21:29:58]   retained 599 behaviour-matched units
+[21:29:58] Play Store: Nykaa Fashion (com.fsn.nds) -- paging...
+[21:33:56]   scanned 30000 reviews
+[21:33:58]   retained 75 behaviour-matched units
+[21:33:58] App Store: Myntra (id=907394059) -- paging...
+[21:34:14]   scanned 500 reviews
+[21:34:14]   retained 0 behaviour-matched units
+[21:34:14] App Store: AJIO (id=1113425372) -- paging...
+[21:34:30]   scanned 500 reviews
+[21:34:30]   retained 1 behaviour-matched units
+[21:34:30] App Store: Nykaa Fashion (id=1439872423) -- paging...
+[21:34:48]   scanned 500 reviews
+[21:34:48]   retained 0 behaviour-matched units
+[21:34:51]   sitejabber (Myntra): 25 text blocks scanned, 0 retained
+[21:34:55]   sitejabber (AJIO): 25 text blocks scanned, 0 retained
+[21:34:59]   sitejabber (Nykaa Fashion): 6 text blocks scanned, 0 retained
+[21:35:04]   complaintsboard (Myntra): 40 text blocks scanned, 0 retained
+[21:35:12]   consumercomplaints (Myntra): 1 text blocks scanned, 0 retained
+[21:35:22]   consumercomplaints (AJIO): 1 text blocks scanned, 0 retained
+[21:35:28]   ! consumercomplaints (Nykaa) HTTP 404
+[21:35:30] Deduplicating 1071 units...
+[21:35:36]   removed 1 exact, 1 near-identical
+[21:35:36] 
+[21:35:36] WROTE C:\Users\Admin\Documents\Padhai Likhai\Next Leap Projects\Grad Project\Fashion\Apps\wishlist_discovery\artefacts\corpus_raw.csv
+[21:35:36] WROTE C:\Users\Admin\Documents\Padhai Likhai\Next Leap Projects\Grad Project\Fashion\Apps\wishlist_discovery\artefacts\query_log.csv
+[21:35:36] WROTE C:\Users\Admin\Documents\Padhai Likhai\Next Leap Projects\Grad Project\Fashion\Apps\wishlist_discovery\artefacts\retrieval_report.md
+[21:35:36] 
+[21:35:36] TOTAL UNITS: 1069   (target 600-700)
+[21:35:36] NYKAA FASHION SUBSET: 74   (target >= 80)
+[21:35:36]    playstore: 1068
+[21:35:36]    appstore: 1
