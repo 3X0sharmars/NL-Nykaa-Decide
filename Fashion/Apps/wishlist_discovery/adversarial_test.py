@@ -86,12 +86,25 @@ def run(model=classifier.DEFAULT_MODEL, write_report=True):
         uid = "adv_" + str(i).zfill(2)
         try:
             r = classifier.classify_unit(client, uid, text, model=model)
-        except Exception as exc:
-            print("  " + str(i).zfill(2) + ". ERROR  " + exc.__class__.__name__
-                  + ": " + str(exc))
+        except classifier.TransportError as exc:
+            # TRANSPORT failure -- the model never returned a label. This says
+            # NOTHING about the codebook and must not be reported as a
+            # classification failure.
+            print("  " + str(i).zfill(2) + ". [TRANSPORT] HTTP "
+                  + str(exc.status) + ("  permanent" if exc.permanent else "  transient"))
+            print("       " + str(exc)[:160])
             results.append({"n": i, "text": text, "expected": exp_gate or "EXCLUDE",
-                            "got": "ERROR", "passed": False, "reason": str(exc)[:200],
-                            "quote_ok": False})
+                            "got": "TRANSPORT-FAIL", "passed": False,
+                            "failure_type": "transport",
+                            "reason": str(exc)[:300], "quote_ok": None})
+            continue
+        except Exception as exc:
+            print("  " + str(i).zfill(2) + ". [TRANSPORT] " + exc.__class__.__name__
+                  + ": " + str(exc)[:160])
+            results.append({"n": i, "text": text, "expected": exp_gate or "EXCLUDE",
+                            "got": "TRANSPORT-FAIL", "passed": False,
+                            "failure_type": "transport",
+                            "reason": str(exc)[:300], "quote_ok": None})
             continue
 
         got_intent = r["intent"]
@@ -126,12 +139,19 @@ def run(model=classifier.DEFAULT_MODEL, write_report=True):
             "n": i, "text": text, "expected": expected_str, "got": got_str,
             "passed": passed, "reason": r["gate_reason"],
             "quote_ok": r["quote_verified"],
+            "failure_type": None if passed else "classification",
         })
 
     total = len(ADVERSARIAL_SET)
+    n_transport = sum(1 for r in results if r.get("failure_type") == "transport")
+    n_classif = sum(1 for r in results if r.get("failure_type") == "classification")
     print("")
     print("-" * 78)
     print("RESULT: " + str(n_pass) + "/" + str(total) + " passed")
+    print("  transport failures      : " + str(n_transport)
+          + "   (API/parse -- says nothing about the codebook)")
+    print("  classification failures : " + str(n_classif)
+          + "   (model returned a label, wrong boundary)")
     if n_pass < total:
         print("")
         print("!! The adversarial set is NOT clean. Per spec 6.4 these must all pass")
@@ -153,14 +173,24 @@ def _write_report(results, n_pass, total, model):
     A("- Codebook: " + CODEBOOK_VERSION + " (fingerprint " + codebook_fingerprint() + ")")
     A("- Model: " + model + ", temperature 0")
     A("- Result: **" + str(n_pass) + "/" + str(total) + " passed**")
+    n_transport = sum(1 for r in results if r.get("failure_type") == "transport")
+    n_classif = sum(1 for r in results if r.get("failure_type") == "classification")
+    A("- Transport failures (API/parse): **" + str(n_transport) + "**")
+    A("- Classification failures (wrong boundary): **" + str(n_classif) + "**")
     A("")
-    A("| # | text | expected | got | result | quote verbatim |")
-    A("|---|---|---|---|---|---|")
+    A("These are different problems. A transport failure says nothing about")
+    A("whether the codebook works; only classification failures bear on the")
+    A("taxonomy.")
+    A("")
+    A("| # | text | expected | got | result | failure type | quote verbatim |")
+    A("|---|---|---|---|---|---|---|")
     for r in results:
         A("| " + str(r["n"]) + " | " + r["text"].replace("|", "/")
           + " | " + r["expected"] + " | " + r["got"]
           + " | " + ("PASS" if r["passed"] else "**FAIL**")
-          + " | " + ("yes" if r["quote_ok"] else "**NO**") + " |")
+          + " | " + (r.get("failure_type") or "-")
+          + " | " + ("n/a" if r["quote_ok"] is None
+                     else ("yes" if r["quote_ok"] else "**NO**")) + " |")
     A("")
     if n_pass < total:
         A("## Failures")

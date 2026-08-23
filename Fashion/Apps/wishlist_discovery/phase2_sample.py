@@ -45,10 +45,29 @@ def load_corpus(path=None):
 
 
 def main():
-    rows = load_corpus()
+    all_rows = load_corpus()
+    if not all_rows:
+        sys.exit("ERROR: corpus_raw.csv is empty. Nothing to sample.")
+
+    # VERTICAL GATE (Phase 1B). Beauty and unclear units are excluded from gate
+    # analysis, so they must not appear in the validation set either -- coding
+    # them would spend effort on units that can never enter the metrics.
+    if "vertical" in all_rows[0]:
+        eligible = [r for r in all_rows
+                    if r.get("vertical") in config.GATE_ELIGIBLE_VERTICALS]
+        excluded = len(all_rows) - len(eligible)
+        util.log("Vertical gate: " + str(len(eligible)) + " gate-eligible of "
+                 + str(len(all_rows)) + " (" + str(excluded)
+                 + " beauty/unclear excluded)")
+    else:
+        util.log("!! corpus has no 'vertical' column -- run migrate_schema.py. "
+                 "Sampling ungated.")
+        eligible = all_rows
+
+    rows = eligible
     n = len(rows)
     if n == 0:
-        sys.exit("ERROR: corpus_raw.csv is empty. Nothing to sample.")
+        sys.exit("ERROR: no gate-eligible units to sample.")
 
     size = min(config.VALIDATION_SAMPLE_SIZE, n)
     if size < config.VALIDATION_SAMPLE_SIZE:

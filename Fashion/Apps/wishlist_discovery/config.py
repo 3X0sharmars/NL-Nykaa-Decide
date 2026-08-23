@@ -32,8 +32,38 @@ CLASSIFIED_CSV = os.path.join(ARTEFACTS_DIR, "validation_set_MODEL.csv")
 VALIDATION_REPORT_MD = os.path.join(ARTEFACTS_DIR, "validation_report.md")
 ADVERSARIAL_REPORT_MD = os.path.join(ARTEFACTS_DIR, "adversarial_report.md")
 
+# ---------------------------------------------------------------------------
+# CLASSIFIER MODEL
+# ---------------------------------------------------------------------------
+# Model id lives HERE, not hardcoded in classifier.py, so switching models is a
+# config change. Override at runtime with the CLASSIFIER_MODEL env var.
+#
+# History: gemini-2.5-pro is retired for new users and returns HTTP 404 on
+# generateContent even though it still appears in models.list(). That 404 was
+# initially misread as a classification failure (0/11 adversarial) because the
+# retry loop swallowed it.
+CLASSIFIER_MODEL = "gemini-3.1-pro-preview"
+
+# Retry policy. 4xx are PERMANENT and must never be retried: retrying a 404
+# four times wastes quota and buries the real cause. Only 429 (rate limit) and
+# 5xx (server-side) are transient.
+RETRY_ON_STATUS = {429, 500, 502, 503, 504}
+MAX_RETRIES = 4
+RETRY_BASE_DELAY_S = 2.0
+RETRY_MAX_DELAY_S = 30.0
+
 # Fixed seed for the 120-unit validation draw (spec 5). Recorded in artefacts.
-RANDOM_SEED = 20260822
+#
+# RANDOM_SEED was the Phase 1 draw, taken from an app-review-only corpus with no
+# vertical gate. Phase 1B superseded it: the sampling frame changed (vertical
+# gate now excludes beauty and unclear), so a fresh seed is used and the old
+# draw is retired rather than silently reused.
+# Each redraw gets a NEW seed and the previous draw is archived, never silently
+# reused: the sampling frame changed each time, so an old draw no longer
+# represents the corpus it would be used to validate.
+RANDOM_SEED_PHASE1 = 20260822          # retired: app-review corpus, no vertical gate
+RANDOM_SEED_PHASE1B_A = 20260822154500  # retired: vertical gate, pre-SerpApi
+RANDOM_SEED = 20260822235900           # current: vertical gate + SerpApi corpus
 VALIDATION_SAMPLE_SIZE = 120
 
 # ---------------------------------------------------------------------------
@@ -182,6 +212,203 @@ PLATFORM_PATTERNS = {
 PLATFORM_RE = {k: re.compile(v, re.IGNORECASE) for k, v in PLATFORM_PATTERNS.items()}
 
 VALID_PLATFORMS = {"Myntra", "AJIO", "Nykaa Fashion", "Other/Unspecified", "Multiple"}
+
+# ---------------------------------------------------------------------------
+# PHASE 1B schema additions: source_genre and vertical
+# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# MODULE A -- X / Twitter  ***DROPPED FROM THE RUN (PM decision, Phase 1B)***
+# ---------------------------------------------------------------------------
+# The only credential available is XAI_API_KEY, which is xAI's Grok API -- not
+# the X developer API. Grok's x_search returns model SYNTHESIS plus citations
+# rather than raw posts; most cited x.com URLs auth-wall on fetch; and it is
+# pay-per-use. Expected yield does not justify the cost.
+#
+# The module code in sources/xtwitter.py is RETAINED and unchanged, so it can be
+# run later against a genuine X developer bearer token. It is excluded from the
+# run and reported as dropped. THE xAI API IS NOT CALLED AT ALL.
+MODULE_A_DROPPED = True
+MODULE_A_DROP_REASON = (
+    "XAI_API_KEY is xAI's Grok API, not the X developer API. Grok x_search "
+    "returns synthesis plus citations rather than posts, most cited x.com URLs "
+    "auth-wall on fetch, and it is pay-per-use. Expected yield did not justify "
+    "the cost. Code retained; xAI API never called."
+)
+
+
+# Audited against FORBIDDEN_REASON_TERMS: 0 reason-anchored. Behaviour anchors
+# ("wishlist", "saved for later", "meant to buy") plus category/platform
+# anchors only.
+X_QUERIES = [
+    '"wishlist" Myntra',
+    '"wishlist" Ajio',
+    '"wishlist" "Nykaa Fashion"',
+    '"saved for later" dress',
+    '"saved for later" kurta',
+    '"still in my wishlist"',
+    '"meant to buy" online shopping',
+    '"never bought it" wishlist',
+    '"added to wishlist" clothes',
+    '"shortlisted" dress buy',
+]
+
+# Quota controls. Tunable here without touching code, per PM directive.
+X_MAX_RESULTS_PER_REQUEST = 25     # per-request cap
+X_MAX_REQUESTS_TOTAL = 40          # hard ceiling across the whole run
+X_TOKEN_BUCKET_DELAY_S = 4.0       # seconds between requests
+X_CHECKPOINT_EVERY_REQUEST = True  # never lose retrieved units to exhaustion
+X_LANG = "en"
+
+# India-relevance filter applied AFTER retrieval. X has no reliable geo filter
+# on free tiers, so relevance is established from the text itself.
+X_INDIA_TERMS = (
+    r"\b(india|indian|myntra|ajio|nykaa|flipkart|meesho|tatacliq|tata\s?cliq|"
+    r"snapdeal|limeroad|bewakoof|kurta|kurti|saree|sari|lehenga|salwar|"
+    r"rupee\w*|inr|₹|paytm|upi|cod\b|bangalore|bengaluru|mumbai|delhi|"
+    r"hyderabad|chennai|kolkata|pune)\b"
+)
+
+# ---------------------------------------------------------------------------
+# MODULE B -- SerpApi (general web, explicitly NOT Reddit)
+# ---------------------------------------------------------------------------
+# Reddit has an active legal complaint against SerpApi over data access. Every
+# non-site-scoped query carries -site:reddit.com, and enforce_no_reddit()
+# rejects any query that could route to Reddit. This is a hard guard, not a
+# convention.
+SERPAPI_QUERIES = [
+    '"wishlist" Myntra -site:reddit.com',
+    '"wishlist" "Nykaa Fashion" -site:reddit.com',
+    '"saved for later" online shopping India -site:reddit.com',
+    '"still in my wishlist" -site:reddit.com',
+    '"meant to buy" dress online -site:reddit.com',
+    'site:quora.com wishlist Myntra OR Ajio',
+    'site:youtube.com Myntra haul wishlist',
+]
+
+SERPAPI_ENGINE = "google"
+SERPAPI_LOCATION = "India"
+SERPAPI_GL = "in"
+SERPAPI_HL = "en"
+SERPAPI_NUM_RESULTS = 20
+SERPAPI_MAX_REQUESTS_TOTAL = 20
+SERPAPI_DELAY_S = 2.0
+SERPAPI_FETCH_DELAY_S = 1.5
+SERPAPI_FETCH_TIMEOUT_S = 25
+
+# Domains that must never be fetched in stage 2, regardless of what the search
+# engine returns.
+BLOCKED_FETCH_DOMAINS = {"reddit.com", "www.reddit.com", "old.reddit.com",
+                         "np.reddit.com", "redd.it", "i.redd.it", "v.redd.it"}
+
+
+def enforce_no_reddit(query: str) -> None:
+    """
+    Hard guard: refuse any SerpApi query that could route to Reddit.
+    Raises ValueError rather than silently rewriting the query.
+    """
+    q = query.lower()
+    if "site:reddit.com" in q and "-site:reddit.com" not in q:
+        raise ValueError("query targets Reddit via site: -- refused: " + query)
+    if "reddit" in q and "-site:reddit.com" not in q:
+        raise ValueError("query mentions Reddit without exclusion -- refused: " + query)
+    if q.startswith("site:"):
+        return  # scoped to a named non-Reddit domain
+    if "-site:reddit.com" not in q:
+        raise ValueError("non-scoped SerpApi query missing -site:reddit.com: " + query)
+
+
+SOURCE_GENRES = {"app_review", "social_short", "forum_thread"}
+VERTICALS = {"fashion", "beauty", "mixed", "unclear"}
+
+# Which genre each source belongs to.
+SOURCE_TO_GENRE = {
+    "playstore": "app_review",
+    "appstore": "app_review",
+    "x": "social_short",
+    "forum": "forum_thread",
+    "serpapi_web": "forum_thread",
+}
+
+# VERTICAL IS A HARD GATE (PM directive, Phase 1B).
+# Nykaa Fashion and Nykaa Beauty are different products with different wishlist
+# behaviour: beauty involves replenishment, shade matching and sale stacking,
+# which would inflate Economic and Latency if pooled with fashion. Beauty and
+# unclear units are EXCLUDED from gate analysis and counted separately.
+BEAUTY_TERMS = (
+    r"\b(makeup|make-up|lipstick|lip\s?balm|kajal|eyeliner|mascara|foundation|"
+    r"concealer|compact|blush|highlighter|nail\s?paint|nail\s?polish|"
+    r"skincare|skin\s?care|serum|moisturis\w+|moisturiz\w+|sunscreen|spf|"
+    r"cleanser|face\s?wash|toner|shampoo|conditioner|hair\s?oil|hair\s?colou?r|"
+    r"fragrance|perfume|deodorant|cosmetic\w*|beauty\s?product\w*|"
+    r"shade\s?match\w*|swatch\w*)\b"
+)
+FASHION_TERMS = (
+    r"\b(dress|kurta|kurti|saree|sari|lehenga|salwar|shirt|t-?shirt|tee|top|"
+    r"jean\w*|trouser\w*|pant\w*|skirt|jacket|blazer|coat|hoodie|sweater|"
+    r"sweatshirt|shoe\w*|sneaker\w*|heel\w*|sandal\w*|footwear|bag|handbag|"
+    r"watch|jewellery|jewelry|earring\w*|apparel|clothing|clothes|outfit|"
+    r"ethnic\s?wear|western\s?wear|innerwear|lingerie|nightwear|"
+    r"size|fit)\b"
+)
+BEAUTY_RE = re.compile(BEAUTY_TERMS, re.IGNORECASE)
+FASHION_RE = re.compile(FASHION_TERMS, re.IGNORECASE)
+
+# Default vertical implied by the source app's catalogue.
+#
+# This is applied ONLY where the storefront is unambiguously single-vertical.
+# For those apps it is evidence, not a guess: a review of AJIO cannot be about
+# a beauty purchase because AJIO does not sell beauty.
+#
+# Myntra is DELIBERATELY ABSENT. Myntra is fashion-dominant but also sells
+# beauty, so a Myntra review naming no product could be either. Assigning it
+# "fashion" would be exactly the guess the vertical gate exists to prevent, so
+# those units fall through to "unclear" and are excluded from gate analysis.
+# Measured cost of this choice: 269 Myntra units excluded. Measured benefit:
+# zero beauty contamination in the gate-eligible set.
+APP_DEFAULT_VERTICAL = {
+    "AJIO": "fashion",           # fashion-only catalogue
+    "Nykaa Fashion": "fashion",  # com.fsn.nds; beauty is a separate app
+}
+
+
+def tag_vertical(text: str, source_detail: str = "", source: str = ""):
+    """
+    Classify a unit as fashion / beauty / mixed / unclear.
+
+    Rules, in order:
+      1. beauty terms AND fashion terms present            -> mixed
+      2. beauty terms only                                 -> beauty
+      3. fashion terms only                                -> fashion
+      4. no product terms, but the host app is a fashion
+         storefront                                        -> that app's vertical
+      5. no product terms and no app context               -> unclear
+
+    Rule 4 applies only to app reviews, where the storefront is known. Open-web
+    and social units with no product signal fall to `unclear` and are excluded
+    from gate analysis -- the PM directive is explicit that unclear is not to be
+    guessed.
+    """
+    t = text or ""
+    has_beauty = bool(BEAUTY_RE.search(t))
+    has_fashion = bool(FASHION_RE.search(t))
+
+    if has_beauty and has_fashion:
+        return "mixed"
+    if has_beauty:
+        return "beauty"
+    if has_fashion:
+        return "fashion"
+
+    if source in ("playstore", "appstore"):
+        for app_name, vert in APP_DEFAULT_VERTICAL.items():
+            if source_detail.startswith(app_name):
+                return vert
+    return "unclear"
+
+
+# Verticals admitted to gate analysis. Beauty and unclear are excluded and
+# reported as separate counts -- never pooled.
+GATE_ELIGIBLE_VERTICALS = {"fashion", "mixed"}
 
 # Targets from spec 3.3 -- targets, NOT quotas. Never pad to reach these.
 TARGETS = {

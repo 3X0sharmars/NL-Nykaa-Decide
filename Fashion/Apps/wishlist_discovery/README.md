@@ -34,12 +34,25 @@ the agreement statistics would measure anchoring, not agreement.
 pip install -r requirements.txt
 ```
 
-Phases 1 and 2 need no API key. Phase 3 does:
+Phase 1 and 2 need no API key. Phase 1B needs `SERPAPI_KEY`; Phase 3 needs
+`GEMINI_API_KEY`:
 
 ```bash
 cp .env.example .env
-# then edit .env and add your ANTHROPIC_API_KEY
 ```
+
+### Model policy
+
+Classification runs on **Gemini 2.5 Pro**, temperature 0, one unit per call.
+
+**`NVIDIA_API_KEY` / LLaMA 3.1-8B must never be used here.** The taxonomy's fine
+boundaries — Intent Decay vs Decision, Purchasability vs Substitution — collapse
+on small models, which return confident, plausible, wrong labels. That is the
+worst possible failure for this pipeline, because it is invisible in the output.
+
+`classifier._reject_small_model()` enforces this at runtime and aborts the run.
+Matching is token-bounded, not substring: a naive check rejects `gemini-2.5-pro`
+because "ge**mini**" contains `mini`.
 
 ---
 
@@ -108,7 +121,12 @@ python phase3_classify.py      # only runs once the coded file exists
 | `sources/webforums.py` | Public review sites; measured and largely dry |
 | `phase1_retrieve.py` | Builds the corpus |
 | `phase2_sample.py` | Exports the blind 120 |
-| `classifier.py` | Prompt + single-unit Anthropic call, forced JSON schema |
+| `classifier.py` | Prompt + single-unit **Gemini 2.5 Pro** call, forced JSON schema |
+| `phase1b_expand.py` | Phase 1B corpus expansion (Module B only; A dropped) |
+| `sources/xtwitter.py` | Module A — **dropped from the run**, code retained |
+| `sources/serpapi_web.py` | Module B — SerpApi two-stage, non-Reddit |
+| `migrate_schema.py` | Retroactive `source_genre` / `vertical` tagging |
+| `relevance_audit.py` | Precision audit on new material, 70% threshold |
 | `adversarial_test.py` | 11 hard-coded boundary cases (spec 6.4) |
 | `phase3_classify.py` | Hard gate, classification, agreement metrics |
 | `inspect_corpus.py` | Diagnostic: what is actually in the corpus |
