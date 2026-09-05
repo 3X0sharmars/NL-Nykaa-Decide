@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 533" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="70%" stop-color="#f8f8f9"/>
+      <stop offset="100%" stop-color="#eeeeef"/>
+    </radialGradient>
+    <filter id="dropShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#000000" flood-opacity="0.06"/>
+    </filter>
+    <linearGradient id="foldHighlight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#000000" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Clean Studio Background -->
+  <rect width="400" height="533" fill="url(#bgGrad)"/>
+  
+  <!-- Subtle Floor Shadow -->
+  <ellipse cx="200" cy="480" rx="140" ry="14" fill="#000000" opacity="0.05" filter="blur(4px)"/>
+
+  <!-- Garment Vector Artwork -->
+  <g filter="url(#dropShadow)">
+    
+  <rect x="130" y="140" width="140" height="200" rx="8" fill="#f5f5f6" stroke="#eaeaec" stroke-width="2"/>
+  <text x="200" y="240" font-family="'Inter', sans-serif" font-size="14" font-weight="600" fill="#94969f" text-anchor="middle">NYKAA FASHION</text>
+  <text x="200" y="265" font-family="'Inter', sans-serif" font-size="11" font-weight="400" fill="#b5b6bb" text-anchor="middle">Product Preview</text>
+
+  </g>
+
+  <!-- Nykaa Brand Watermark Overlay -->
+  <text x="20" y="32" font-family="'Inter', sans-serif" font-size="10" font-weight="700" fill="#94969f" letter-spacing="1">NYKAA</text>
+  <text x="380" y="32" font-family="'Inter', sans-serif" font-size="9" font-weight="500" fill="#b5b6bb" text-anchor="end">FASHION</text>
+</svg>

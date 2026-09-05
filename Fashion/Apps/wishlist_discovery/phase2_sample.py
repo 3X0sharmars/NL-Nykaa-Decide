@@ -53,11 +53,22 @@ def main():
     # analysis, so they must not appear in the validation set either -- coding
     # them would spend effort on units that can never enter the metrics.
     if "vertical" in all_rows[0]:
-        eligible = [r for r in all_rows
+        # RELEVANCE GATE first: sources that failed the mandatory audit are
+        # barred from the validation frame entirely.
+        n_before = len(all_rows)
+        relevant = [r for r in all_rows
+                    if r.get("source") not in config.FAILED_RELEVANCE_SOURCES]
+        n_failed_src = n_before - len(relevant)
+        if n_failed_src:
+            util.log("Relevance gate: " + str(n_failed_src) + " units excluded "
+                     "from sources that failed the >=70% audit ("
+                     + ", ".join(sorted(config.FAILED_RELEVANCE_SOURCES)) + ")")
+
+        eligible = [r for r in relevant
                     if r.get("vertical") in config.GATE_ELIGIBLE_VERTICALS]
-        excluded = len(all_rows) - len(eligible)
+        excluded = len(relevant) - len(eligible)
         util.log("Vertical gate: " + str(len(eligible)) + " gate-eligible of "
-                 + str(len(all_rows)) + " (" + str(excluded)
+                 + str(len(relevant)) + " (" + str(excluded)
                  + " beauty/unclear excluded)")
     else:
         util.log("!! corpus has no 'vertical' column -- run migrate_schema.py. "

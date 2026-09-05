@@ -1,0 +1,3 @@
+﻿query_string,source,timestamp,raw_results_returned,units_retained,method,notes
+(apify dataset export),reddit,2026-08-24T04:11:51+00:00,100,0,"Apify trudax/reddit-scraper dataset export, ingested offline","dataset_reddit-scraper_2026-08-24_04-09-33-862.json; bots dropped=15; single-token anchors used (multi-token has 0% recall on community prose, recorded as stratification flag)"
+(apify dataset export),reddit,2026-08-24T04:11:51+00:00,10,2,"Apify trudax/reddit-scraper dataset export, ingested offline","dataset_reddit-scraper_2026-08-24_03-12-07-672.json; bots dropped=3; single-token anchors used (multi-token has 0% recall on community prose, recorded as stratification flag)"

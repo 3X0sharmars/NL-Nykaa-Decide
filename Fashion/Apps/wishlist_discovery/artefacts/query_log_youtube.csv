@@ -1,0 +1,9 @@
+﻿query_string,source,timestamp,raw_results_returned,units_retained,method,notes
+myntra haul try on india,youtube,2026-08-24T03:09:16+00:00,85,0,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+ajio haul try on india,youtube,2026-08-24T03:10:12+00:00,403,0,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+nykaa fashion haul india,youtube,2026-08-24T03:10:53+00:00,387,2,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+myntra wishlist shopping india,youtube,2026-08-24T03:11:34+00:00,331,0,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+online shopping haul india clothes honest review,youtube,2026-08-24T03:12:30+00:00,520,0,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+myntra vs ajio shopping experience india,youtube,2026-08-24T03:13:05+00:00,207,1,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+indian fashion online shopping haul honest,youtube,2026-08-24T03:13:35+00:00,275,0,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"
+myntra shopping experience india what i bought,youtube,2026-08-24T03:13:50+00:00,105,0,youtube-comment-downloader (no API key) + multi-token behaviour filter,"8 videos, up to 100 popular comments each"

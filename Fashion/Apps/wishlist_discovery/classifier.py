@@ -65,20 +65,27 @@ def _status_of(exc):
     m = _re.search(r"\b([45]\d{2})\b", str(exc))
     return int(m.group(1)) if m else None
 
-# Markers indicating a model too small for this taxonomy. Checked at runtime;
-# the run aborts rather than producing plausible-looking garbage.
+# Guard against a model too small for this taxonomy. Two independent checks.
 #
-# Matching is TOKEN-BOUNDED, not substring. A naive substring check rejects
-# "gemini-2.5-pro", because "geMINIe" contains "mini" -- it would block the very
-# model this pipeline is supposed to use. Model ids are split on non-alphanumeric
-# boundaries and matched per token.
-FORBIDDEN_MODEL_PATTERN = (
-    r"(?<![a-z0-9])("
-    r"llama|nemotron|phi|vicuna|mistral-7b|"      # small open-weight families
-    r"\d+b|"                                       # 7b, 8b, 3b, 1b parameter tags
-    r"mini|tiny|small|nano|lite|flash-lite"        # size-class suffixes
-    r")(?![a-z0-9])"
+# TWO BUGS THIS CODE HAS ALREADY HAD -- both caught by tests, both instructive:
+#
+#  1. Substring matching rejected "gemini-2.5-pro" because "geMINIe" contains
+#     "mini". Matching must be TOKEN-BOUNDED.
+#  2. A blanket `\d+b` rule rejected "nemotron-3-ultra-550b-a55b" and
+#     "nemotron-3-super-120b-a12b" -- the LARGEST models available -- because
+#     "550b" matches the same pattern as "8b". Parameter counts must be COMPARED
+#     NUMERICALLY, not pattern-matched. Family names (llama, nemotron) were also
+#     rejected outright, which is wrong: those families span 8B to 550B.
+#
+# Rule now: reject on an explicit size-class word, or on a parameter tag whose
+# LARGEST value is below MIN_PARAM_BILLIONS.
+MIN_PARAM_BILLIONS = 30
+
+SIZE_CLASS_PATTERN = (
+    r"(?<![a-z0-9])(mini|tiny|small|nano|lite|embed|guard|safety|reward|parse)"
+    r"(?![a-z0-9])"
 )
+PARAM_TAG_PATTERN = r"(?<![a-z0-9])(\d+(?:\.\d+)?)b(?![a-z0-9])"
 
 SYSTEM_PROMPT = """You are a research coder applying a PRE-REGISTERED, FROZEN codebook to public user commentary about online fashion shopping in India.
 
@@ -123,9 +130,21 @@ RESPONSE_SCHEMA = {
 
 def _reject_small_model(model: str) -> None:
     import re as _re
-    hit = _re.search(FORBIDDEN_MODEL_PATTERN, model.lower())
+    low = model.lower()
+
+    marker = None
+    hit = _re.search(SIZE_CLASS_PATTERN, low)
     if hit:
-            marker = hit.group(1)
+        marker = hit.group(1) + " (size-class marker)"
+    else:
+        # Compare parameter tags numerically. For MoE ids like
+        # "550b-a55b" the LARGEST tag is the total parameter count.
+        tags = [float(t) for t in _re.findall(PARAM_TAG_PATTERN, low)]
+        if tags and max(tags) < MIN_PARAM_BILLIONS:
+            marker = (format(max(tags), "g") + "B parameters, below the "
+                      + str(MIN_PARAM_BILLIONS) + "B floor")
+
+    if marker:
             raise SystemExit(
                 "REFUSING TO RUN with model " + repr(model) + ".\n\n"
                 "This taxonomy has fine boundaries -- Intent Decay vs Decision, "

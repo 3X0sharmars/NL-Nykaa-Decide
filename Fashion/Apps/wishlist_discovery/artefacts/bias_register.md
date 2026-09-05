@@ -230,3 +230,70 @@ contains one.
 Every gate proportion measured today is a proportion *within the app-review
 genre*, and should be reported that way rather than as a proportion of Indian
 fashion wishlist abandonment generally.
+
+---
+
+# Update — 2026-08-23, Phase 1C close. Retrieval permanently closed.
+
+## B3 — NOT superseded. Reinforced.
+
+B3 was to be superseded if Reddit and YouTube landed. **Neither landed.**
+
+- **Reddit**: every route closed. Public JSON 403 since May 2026; the Pushshift
+  mirror explicitly refuses automated agents and was not evaded; official API
+  registration went unanswered for a month; the Apify route could not start
+  (no token).
+- **YouTube**: attempted and **measured dry** — 2,313 comments across 64 videos
+  yielded 3 units, one arguably on-target.
+
+The corpus remains **app reviews only**. Decision, Intent Decay and Latency stay
+**lower bounds, not estimates**. No gate became newly observable.
+
+## B4 — YouTube is now measured, not assumed
+
+Previously B4 recorded short-form social as absent-by-decision. It is now absent
+**by measurement**: 0.13% yield.
+
+YouTube comments are addressed to the *creator*, not to the commenter's own
+purchase history — "which lipstick is that?", not "I saved that and never bought
+it". The genre is reaction, not recollection. Substitution and Latency therefore
+gain no visibility from video comments, and their rates remain lower bounds.
+
+## B11 — NEW: the non-conversion narrative is publicly unwritten
+
+Eleven sources, three genres, ~95,000 items scanned. Four multi-token phrases
+that would directly signal non-conversion — `saved it but`, `went to buy`,
+`still haven't bought`, `meant to buy` — matched **zero** units in 1,069 app
+reviews.
+
+This is the study's most robust empirical finding and it is a finding about the
+*phenomenon*, not about retrieval:
+
+> People publish when something is done to them. Not buying a saved item wrongs
+> nobody, so it produces almost no public text.
+
+**Consequence for interpretation.** Every gate rate this corpus can produce is a
+rate *among people who chose to write publicly about a wishlist*. That
+population is dominated by the aggrieved. Gates with an external villain
+(Purchasability, Economic) are structurally over-represented; gates that are
+internal and blameless (Decision, Intent Decay, Return) are structurally
+under-represented.
+
+No amount of additional free-tier retrieval changes this. Closing the gap needs
+a different instrument entirely — first-party wishlist telemetry, or primary
+research such as a survey or diary study.
+
+## B12 — NEW: retrieval precision is low and the intent filter is what carries quality
+
+Measured precision of the base Play corpus is **16.7%** (n=30) by the same judge
+used to gate new sources at 70%. New sources were therefore held to a bar the
+existing corpus does not itself meet.
+
+This asymmetry is recorded rather than resolved by quietly lowering the bar.
+The defensible reading is that the 70% gate was a *retrieval-quality* screen for
+admitting whole new genres, while unit-level quality is properly enforced
+downstream by the codebook 4.1 intent filter — whose human-model agreement is
+metric #1 of the validation report.
+
+A reviewer should know both numbers: retrieval precision ~17%, with EXCLUDE
+expected to be the largest single outcome at classification.

@@ -63,8 +63,53 @@ RETRY_MAX_DELAY_S = 30.0
 # represents the corpus it would be used to validate.
 RANDOM_SEED_PHASE1 = 20260822          # retired: app-review corpus, no vertical gate
 RANDOM_SEED_PHASE1B_A = 20260822154500  # retired: vertical gate, pre-SerpApi
-RANDOM_SEED = 20260822235900           # current: vertical gate + SerpApi corpus
+RANDOM_SEED_PHASE1B_B = 20260822235900  # retired: drawn before the relevance audit
+RANDOM_SEED = 20260823010000           # current: vertical gate + relevance gate
 VALIDATION_SAMPLE_SIZE = 120
+
+# Sources whose material FAILED the mandatory relevance audit (>=70% required).
+# Units from these sources stay in corpus_raw.csv for provenance but are barred
+# from the validation frame and from gate analysis: hand-coding them would spend
+# effort on material already judged off-target.
+#   serpapi_web -- 2/30 = 6.7% precision. The open web for behaviour-anchored
+#   wishlist phrases returns hashtag spam, trend journalism and SaaS content
+#   marketing, not first-person shopper accounts.
+FAILED_RELEVANCE_SOURCES = {"serpapi_web"}
+
+# Phase 4 sampling (spec: sample, don't census).
+#
+# Reduced 400 -> 200 by PM decision: the decision rule treats gates whose
+# confidence bands overlap as ties, so the extra precision at n=400 cannot
+# change the shortlist. At n=200 a 25% share carries a 95% CI of about
+# 19.6%-31.3%; at n=400 about 21.0%-29.5%. Neither separates gates the other
+# merges, so the extra 200 calls buy nothing the decision can use.
+CLASSIFY_SAMPLE_SIZE = 200
+CLASSIFY_SAMPLE_SEED = 20260823040000
+
+# ---------------------------------------------------------------------------
+# QUALIFIED CLASSIFIERS
+# ---------------------------------------------------------------------------
+# A model may only be used if it INDEPENDENTLY scored 11/11 with zero
+# classification failures on the FULL adversarial set. Populate from
+# artefacts/model_selection.md; do not add a model on the strength of a partial
+# or batched-transport-failure run.
+#
+# Multi-model rules (PM directive, non-negotiable):
+#   * The 120 validation units must ALL be classified by ONE model. A single
+#     kappa cannot be assembled from two instruments.
+#   * The sample MAY be split across qualified models, but every unit must
+#     record which model classified it, and the gate-share table must report
+#     whether shares differ materially by model.
+#   * If shares differ materially by model, that is a FINDING, not something to
+#     average away. It goes to the PM.
+QUALIFIED_MODELS = {
+    # model id: (batch_size verified clean, measured daily call budget)
+    "gemini-3-flash-preview": {"batch": 1, "daily_calls": 22},
+}
+
+# Difference in gate share (percentage points) beyond which two models are
+# judged to disagree materially and the split is reported as a finding.
+MODEL_SHARE_DIVERGENCE_PP = 10.0
 
 # ---------------------------------------------------------------------------
 # BEHAVIOUR-ANCHORED QUERIES -- verbatim ALLOWED list from spec 3.1
@@ -107,6 +152,41 @@ BEHAVIOUR_FILTER_RE = {
     name: re.compile(pat, re.IGNORECASE)
     for name, pat in BEHAVIOUR_FILTER_PATTERNS.items()
 }
+
+# ---------------------------------------------------------------------------
+# PHASE 1C -- MULTI-TOKEN BEHAVIOUR FILTER
+# ---------------------------------------------------------------------------
+# The single-token filter above retained a unit on bare "wishlist", which is
+# what filled the corpus with feature complaints: "please add sorting to the
+# wishlist", "the wishlist button is broken". Those mention the FEATURE, never
+# a saved item someone failed to buy.
+#
+# These phrases require the ACT plus its OBJECT -- someone doing something with
+# a specific saved item. Bare "wishlist" no longer retains anything.
+#
+# Faithful to the nine phrases specified. The only tolerance added is
+# whitespace ("wish list") and apostrophes ("haven't"/"havent"); no synonyms,
+# no morphological widening. Widening here would re-import the problem the
+# filter exists to remove.
+MULTITOKEN_BEHAVIOUR_PATTERNS = {
+    "in my wishlist":       r"in (?:my|the) wish\s?list",
+    "saved it but":         r"saved? it,? but",
+    "wanted to buy":        r"wanted to buy",
+    "went to buy":          r"went to buy",
+    "still haven't bought": r"still (?:haven'?t|have not|hadn'?t|had not) bought",
+    "meant to buy":         r"meant to buy",
+    "added to wishlist":    r"add(?:ed|ing)? (?:it |this |them )?to (?:my |the )?wish\s?list",
+    "wishlisted it":        r"wish\s?listed (?:it|this|them|these)",
+    "shortlisted":          r"short\s?listed",
+}
+
+MULTITOKEN_BEHAVIOUR_RE = {
+    name: re.compile(pat, re.IGNORECASE)
+    for name, pat in MULTITOKEN_BEHAVIOUR_PATTERNS.items()
+}
+
+# Phase 1C onward this is the retention rule for every source.
+USE_MULTITOKEN_FILTER = True
 
 # ---------------------------------------------------------------------------
 # Sources

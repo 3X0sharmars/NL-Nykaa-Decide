@@ -28,10 +28,22 @@ import util
 
 UA = {"User-Agent": "Mozilla/5.0 (compatible; academic-research/1.0)"}
 RSS = ("https://itunes.apple.com/{country}/rss/customerreviews/"
-       "page={page}/id={app_id}/sortby=mostrecent/json")
+       "page={page}/id={app_id}/sortby={sort}/json")
+
+# BUG FIXED 2026-08-23: this module previously requested sortby=mostrecent ONLY.
+# That is by far the worse slice. Measured across all three apps:
+#
+#   sortby=mostrecent   1500 reviews, median   92 chars,  4.5% multi-step,  1 hit
+#   sortby=mosthelpful  1100 reviews, median  791 chars, 28.7% multi-step, 13 hits
+#
+# "Most helpful" reviews are 8.6x longer and four times more likely to contain a
+# multi-step narrative -- exactly the journey evidence the app-review genre is
+# otherwise too truncated to carry. Requesting only "most recent" cost the study
+# its richest available units. Both sorts are now pulled and merged.
+SORT_ORDERS = ["mosthelpful", "mostrecent"]
 
 
-def _fetch_page(app_id: int, page: int, attempts: int = 4):
+def _fetch_page(app_id: int, page: int, sort: str = "mosthelpful", attempts: int = 4):
     """
     Fetch one RSS page with exponential backoff.
 
@@ -41,7 +53,8 @@ def _fetch_page(app_id: int, page: int, attempts: int = 4):
     that demonstrably have thousands. So an empty page is treated as a retryable
     throttle signal, not as end-of-data.
     """
-    url = RSS.format(country=config.APPSTORE_COUNTRY, page=page, app_id=app_id)
+    url = RSS.format(country=config.APPSTORE_COUNTRY, page=page, app_id=app_id,
+                     sort=sort)
     for attempt in range(1, attempts + 1):
         try:
             resp = requests.get(url, headers=UA, timeout=30)
@@ -73,17 +86,27 @@ def _fetch_page(app_id: int, page: int, attempts: int = 4):
     return [], False                    # exhausted retries
 
 
-def _pull_app_reviews(app_id: int, max_pages: int, sleep: float = 1.2):
+def _pull_app_reviews(app_id: int, max_pages: int, sleep: float = 1.0):
+    """Pull every sort order and merge; each returns a different slice."""
+    entries = []
+    for sort in SORT_ORDERS:
+        got = _pull_one_sort(app_id, max_pages, sort, sleep)
+        util.log("    sortby=" + sort + ": " + str(len(got)) + " reviews")
+        entries.extend(got)
+    return entries
+
+
+def _pull_one_sort(app_id: int, max_pages: int, sort: str, sleep: float):
     entries = []
     for page in range(1, max_pages + 1):
-        batch, ok = _fetch_page(app_id, page)
+        batch, ok = _fetch_page(app_id, page, sort)
         if not ok:
             # Page 1 empty after retries means throttled or unavailable, which
             # is different from genuinely running out of pages further in.
             if page == 1:
-                util.log("  !! id=" + str(app_id) + " returned nothing on page 1 "
-                         "after retries -- treating as UNAVAILABLE, not as zero "
-                         "reviews.")
+                util.log("  !! id=" + str(app_id) + " sortby=" + sort
+                         + " returned nothing on page 1 after retries -- "
+                           "treating as UNAVAILABLE, not as zero reviews.")
             break
         entries.extend(batch)
         time.sleep(sleep)
@@ -139,7 +162,8 @@ def retrieve(query_log, max_pages=None):
                 method="Apple first-party RSS customer-reviews endpoint "
                        "+ local behaviour-anchored regex filter",
                 notes=app_name + " / id=" + str(app_id) + " / storefront=in / "
-                      "Apple RSS hard-caps at page=10 (~500 reviews per app)",
+                      "sorts=" + "+".join(SORT_ORDERS) + " / Apple RSS hard-caps "
+                      "at page=10 per sort",
             )
 
         util.log("  retained " + str(kept) + " behaviour-matched units")

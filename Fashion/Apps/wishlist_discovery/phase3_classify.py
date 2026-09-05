@@ -167,6 +167,32 @@ def main():
 
     client = classifier.get_client()
     model_name = os.environ.get("CLASSIFIER_MODEL", classifier.DEFAULT_MODEL)
+
+    # SINGLE-INSTRUMENT RULE (PM directive, non-negotiable).
+    # All 120 validation units must be classified by ONE model. A kappa
+    # assembled from two instruments measures neither of them: disagreement
+    # between the models becomes indistinguishable from disagreement with the
+    # human coder. If the run is interrupted, it must RESUME on the same model,
+    # never continue on a different one.
+    if model_name not in config.QUALIFIED_MODELS:
+        util.log("!! WARNING: " + model_name + " is not in config.QUALIFIED_MODELS.")
+        util.log("!! Only models scoring 11/11 with zero classification failures")
+        util.log("!! on the full adversarial set should classify the validation set.")
+    stamp = os.path.join(config.ARTEFACTS_DIR, "validation_model.lock")
+    if os.path.exists(stamp):
+        with open(stamp, "r", encoding="utf-8") as f:
+            locked = f.read().strip()
+        if locked and locked != model_name:
+            sys.exit(
+                "\nREFUSING TO RUN -- instrument mismatch.\n\n"
+                "This validation set was already being classified by:\n    "
+                + locked + "\nbut this run requests:\n    " + model_name + "\n\n"
+                "All 120 units must come from ONE model; a single kappa cannot be\n"
+                "assembled from two instruments. Either finish on " + locked
+                + ",\nor delete " + stamp + " and start the whole set again.\n")
+    else:
+        with open(stamp, "w", encoding="utf-8") as f:
+            f.write(model_name)
     util.log("Classifying with " + model_name + " (temperature 0, one unit per call)...")
 
     model_rows = []
