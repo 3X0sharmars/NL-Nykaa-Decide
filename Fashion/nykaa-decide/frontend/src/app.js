@@ -279,8 +279,6 @@
           <div class="product-name" title="${p.name}">${p.name}</div>
           <div class="product-pricing">
             <span class="price-current">${formatPrice(p.price)}</span>
-            <span class="price-original">${formatPrice(p.originalPrice)}</span>
-            <span class="price-discount">${p.discount}</span>
           </div>
           ${ratingBadgeHtml}
           <div class="product-key-fact">
@@ -667,8 +665,6 @@
             <div class="decision-card-title">${p.name}</div>
             <div class="decision-card-price">
               <span class="price-current">${formatPrice(p.price)}</span>
-              <span class="price-original">${formatPrice(p.originalPrice)}</span>
-              <span class="price-discount">${p.discount}</span>
             </div>
 
             <!-- Recommendation Rationale -->
@@ -781,8 +777,6 @@
           <h1 class="evidence-title">${p.brand} ${p.name}</h1>
           <div class="evidence-price-row">
             <span class="price-current">${formatPrice(p.price)}</span>
-            <span class="price-original">${formatPrice(p.originalPrice)}</span>
-            <span class="price-discount">${p.discount}</span>
             <span class="evidence-sku-tag">SKU: ${p.skuId}</span>
           </div>
           <div class="evidence-header-actions">
