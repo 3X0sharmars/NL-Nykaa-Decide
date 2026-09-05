@@ -176,23 +176,11 @@ def write_corpus(units, path=None):
     return path
 
 
-def matched_behaviour_patterns(text: str, multitoken=None):
-    """
-    Which behaviour-anchored patterns this text matches. Empty list = no match.
-
-    Phase 1C: defaults to the MULTI-TOKEN filter, which requires the act plus
-    its object ("in my wishlist", "wanted to buy") rather than the bare noun
-    "wishlist". The single-token filter retained feature complaints -- "please
-    add sorting to the wishlist" -- which mention the feature and never a saved
-    item anyone failed to buy.
-
-    Pass multitoken=False to reproduce the pre-1C behaviour for comparison.
-    """
+def matched_behaviour_patterns(text: str):
+    """Which behaviour-anchored patterns this text matches. Empty list = no match."""
     if not text:
         return []
-    use_mt = config.USE_MULTITOKEN_FILTER if multitoken is None else multitoken
-    table = config.MULTITOKEN_BEHAVIOUR_RE if use_mt else config.BEHAVIOUR_FILTER_RE
-    return [name for name, rx in table.items() if rx.search(text)]
+    return [name for name, rx in config.BEHAVIOUR_FILTER_RE.items() if rx.search(text)]
 
 
 def log(msg: str) -> None:

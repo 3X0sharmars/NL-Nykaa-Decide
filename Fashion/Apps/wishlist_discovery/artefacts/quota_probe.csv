@@ -1,7 +1,0 @@
-﻿backend,model,calls_completed,stop_status,verdict,detail,spacing_s,cap,probed_at
-gemini,gemini-3.7-flash,0,429,0 (measured ceiling),per-day,6.0,40,2026-08-23T04:05:02+00:00
-gemini,gemini-3.6-flash,19,429,19 (measured ceiling),per-day,6.0,40,2026-08-23T04:10:06+00:00
-gemini,gemini-3-flash-preview,6,429,6 (measured ceiling),per-minute,6.0,40,2026-08-23T04:10:51+00:00
-nvidia,nvidia/nemotron-3-ultra-550b-a55b,4,503,4 then 503,"{""error"":{""message"":""Service temporarily overloaded"",""type"":""Service Unavailable"",""code"":503}}",6.0,40,2026-08-23T04:12:18+00:00
-nvidia,nvidia/nemotron-3-super-120b-a12b,40,cap,">= 40 (floor -- cap reached, no 429)",no 429 within cap,6.0,40,2026-08-23T04:17:16+00:00
-nvidia,nvidia/llama-3.3-nemotron-super-49b-v1.5,40,cap,">= 40 (floor -- cap reached, no 429)",no 429 within cap,6.0,40,2026-08-23T04:31:16+00:00

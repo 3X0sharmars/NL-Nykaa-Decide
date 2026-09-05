@@ -1,24 +1,8 @@
-# ---- secrets ----
 .env
-.env.*
-!.env.example
-
-# ---- dependencies ----
-node_modules/
-
-# ---- build output ----
-dist/
-build/
-.vite/
 __pycache__/
 *.pyc
-.pytest_cache/
-
-# ---- os / editor ----
-.DS_Store
-Thumbs.db
-.idea/
-.vscode/
-
-# ---- logs ----
-*.log
+.venv/
+venv/
+.pythonlibs/
+.replit
+.config/
