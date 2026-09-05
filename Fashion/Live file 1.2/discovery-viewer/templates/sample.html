@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Corpus Sample Table</h2>
+
+<form class="search-form" method="GET" action="/sample">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search text...">
+    <button type="submit">Search</button>
+    {% if q %}
+        <a href="/sample" style="padding: 0.5rem; text-decoration: none; color: #666;">Clear</a>
+    {% endif %}
+</form>
+
+<p>Showing {{ data|length }} rows on this page (total matches: {{ total_rows }}).</p>
+
+{% if data %}
+<div style="overflow-x: auto;">
+    <table>
+        <thead>
+            <tr>
+                <th>Unit ID</th>
+                <th>Source</th>
+                <th>Source Detail</th>
+                <th>Platform</th>
+                <th>Text</th>
+                <th>Retrieved At</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td>{{ row.unit_id }}</td>
+                <td>{{ row.source }}</td>
+                <td>{{ row.source_detail }}</td>
+                <td>{{ row.platform_mentioned }}</td>
+                <td style="min-width: 300px; max-width: 500px;">
+                    {% set text_val = row.text|string %}
+                    {% if text_val|length > 200 %}
+                        <div>
+                            <span class="short-text">{{ text_val[:200] }}...</span>
+                            <span class="full-text">{{ text_val }}</span>
+                            <button class="show-more-btn" onclick="toggleText(this)">show more</button>
+                        </div>
+                    {% else %}
+                        {{ text_val }}
+                    {% endif %}
+                </td>
+                <td style="white-space: nowrap;">{{ row.retrieved_at }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="pagination">
+    {% if page > 1 %}
+        <a href="/sample?page={{ page - 1 }}{% if q %}&q={{ q }}{% endif %}">&laquo; Previous</a>
+    {% endif %}
+    
+    <span>Page {{ page }} of {{ total_pages }}</span>
+    
+    {% if page < total_pages %}
+        <a href="/sample?page={{ page + 1 }}{% if q %}&q={{ q }}{% endif %}">Next &raquo;</a>
+    {% endif %}
+</div>
+{% else %}
+    <div class="message-box">No records found.</div>
+{% endif %}
+
+{% endblock %}
