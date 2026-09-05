@@ -1,0 +1,28 @@
+Probing with 6.0s spacing, cap 40 per model.
+
+  probing gemini / gemini-3.7-flash ...
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+     completed 0 calls in 4s -> 0 (measured ceiling)
+     per-day
+
+  probing gemini / gemini-3.6-flash ...
+     completed 19 calls in 304s -> 19 (measured ceiling)
+     per-day
+
+  probing gemini / gemini-3-flash-preview ...
+     completed 6 calls in 45s -> 6 (measured ceiling)
+     per-minute
+
+  probing nvidia / nvidia/nemotron-3-ultra-550b-a55b ...
+     completed 4 calls in 87s -> 4 then 503
+     {"error":{"message":"Service temporarily overloaded","type":"Service Unavailable","code":503}}
+
+  probing nvidia / nvidia/nemotron-3-super-120b-a12b ...
+     completed 40 calls in 298s -> >= 40 (floor -- cap reached, no 429)
+     no 429 within cap
+
+  probing nvidia / nvidia/llama-3.3-nemotron-super-49b-v1.5 ...
+     completed 40 calls in 840s -> >= 40 (floor -- cap reached, no 429)
+     no 429 within cap
+
+WROTE C:\Users\Admin\Documents\Padhai Likhai\Next Leap Projects\Grad Project\Fashion\Apps\wishlist_discovery\artefacts\quota_probe.csv

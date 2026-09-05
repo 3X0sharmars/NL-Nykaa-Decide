@@ -1,0 +1,50 @@
+
+>>> nvidia/nemotron-3-super-120b-a12b  batch=1
+    passed 6/11  classif=5  transport=0  cross=0
+
+>>> nvidia/llama-3.3-nemotron-super-49b-v1.5  batch=1
+    passed 9/11  classif=2  transport=0  cross=0
+
+>>> nvidia/nemotron-3-ultra-550b-a55b  batch=1
+    passed 10/11  classif=1  transport=0  cross=0
+
+================================================================================================
+ADVERSARIAL BAKE-OFF -- codebook v1.1 (2016b7d4d97ffbd8)
+================================================================================================
+model                                        batch  passed  classif  transp  quote!  cross
+------------------------------------------------------------------------------------------
+nvidia/nemotron-3-super-120b-a12b                1    6/11        5       0       0      0
+nvidia/llama-3.3-nemotron-super-49b-v1.5         1    9/11        2       0       0      0
+nvidia/nemotron-3-ultra-550b-a55b                1   10/11        1       0       0      0
+
+  nvidia/nemotron-3-super-120b-a12b (batch 1) -- boundaries crossed:
+     expected RETURN                   got EXCLUDE
+        I saved it and completely forgot about it.
+        model reason: 
+     expected INTENT_DECAY             got EXCLUDE
+        The wedding passed so I don't need it anymore.
+        model reason: 
+     expected LATENCY                  got EXCLUDE
+        I'll buy it after salary comes in.
+        model reason: 
+     expected INTENT_DECAY             got EXCLUDE
+        I kept looking at it and eventually just lost interest.
+        model reason: 
+     expected OTHER/INSUFFICIENT_INFO  got EXCLUDE
+        Saved it but didn't buy.
+        model reason: 
+  nvidia/llama-3.3-nemotron-super-49b-v1.5 (batch 1) -- boundaries crossed:
+     expected RETURN                   got RETURN / RE-ENGAGEMENT
+        I saved it and completely forgot about it.
+        model reason: 
+     expected OTHER/INSUFFICIENT_INFO  got EXCLUDE
+        Saved it but didn't buy.
+        model reason: 
+  nvidia/nemotron-3-ultra-550b-a55b (batch 1) -- boundaries crossed:
+     expected OTHER/INSUFFICIENT_INFO  got EXCLUDE
+        Saved it but didn't buy.
+        model reason: 
+WROTE artefacts/model_bakeoff_nvidia.md
+
+NO model reached 11/11 with zero classification failures.
+Per the selection rule: reporting and stopping. PM decides.

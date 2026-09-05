@@ -1,0 +1,59 @@
+[23:48:02] Existing corpus: 1069 units
+[23:48:02] 
+[23:48:02] MODULE A -- X / Twitter: DROPPED (not run)
+[23:48:02]    XAI_API_KEY is xAI's Grok API, not the X developer API. Grok x_search returns synthesis plus citations rather than posts, most cited x.com URLs auth-wall on fetch, and it is pay-per-use. Expected yield did not justify the cost. Code retained; xAI API never called.
+[23:48:02] 
+[23:48:02] MODULE B -- SerpApi (non-Reddit web)
+[23:48:26]   "wishlist" Myntra -site:reddit.com             urls=  9 units=  7
+[23:48:48]   "wishlist" "Nykaa Fashion" -site:reddit.com    urls=  8 units=  0
+[23:49:22]   "saved for later" online shopping India -sit   urls= 10 units= 12
+[23:49:48]   "still in my wishlist" -site:reddit.com        urls=  8 units= 14
+[23:50:39]   "meant to buy" dress online -site:reddit.com   urls= 10 units=  5
+[23:51:03]   site:quora.com wishlist Myntra OR Ajio         urls= 10 units=  0
+[23:51:40]   site:youtube.com Myntra haul wishlist          urls= 10 units=  0
+[23:51:42]   WROTE C:\Users\Admin\Documents\Padhai Likhai\Next Leap Projects\Grad Project\Fashion\Apps\wishlist_discovery\artefacts\serpapi_unfetched_leads.csv (22 leads)
+[23:51:42] 
+[23:51:42] New units retrieved: 38
+[23:51:54] Dedup across combined corpus: removed 0 exact, 0 near-identical
+
+======================================================================
+PHASE 1B COMPLETE
+======================================================================
+  codebook v1.1 (2016b7d4d97ffbd8)
+  total corpus: 1107
+
+  by source:
+     playstore       1068
+     serpapi_web     38
+     appstore        1
+  by source_genre:
+     app_review      1069
+     forum_thread    38
+  by vertical:
+     fashion         802
+     unclear         301   <-- EXCLUDED
+     mixed           4
+  gate-eligible: 806
+
+  X (DROPPED):
+     queries run   : 0/10
+     requests made : 0
+     units         : 0
+     UNRUN (10):
+        "wishlist" Myntra
+        "wishlist" Ajio
+        "wishlist" "Nykaa Fashion"
+        "saved for later" dress
+        "saved for later" kurta
+        "still in my wishlist"
+        "meant to buy" online shopping
+        "never bought it" wishlist
+        "added to wishlist" clothes
+        "shortlisted" dress buy
+     stopped: DROPPED by PM decision -- XAI_API_KEY is xAI's Grok API, not the X developer API. Grok x_search returns synthesis plus citations rather than posts, most cited x.com URLs auth-wall on fetch, and it is pay-per-use. Expected yield did not justify the cost. Code retained; xAI API never called.
+
+  SerpApi:
+     queries run   : 7/7
+     requests made : 7
+     units         : 38
+     unfetched leads: 22
