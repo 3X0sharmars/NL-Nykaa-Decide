@@ -1,27 +1,52 @@
 {% extends "base.html" %}
+{% block title %}Query Yield Logs · Discovery Viewer | Nykaa Fashion Research Lab{% endblock %}
+
 {% block content %}
-<h2>Query Log Summary</h2>
+
+<div style="margin-bottom: 24px;">
+    <div class="section-eyebrow">RETRIEVAL METHODOLOGY</div>
+    <h1 style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 4px 0 8px;">Query Log Summary</h1>
+    <p style="font-size: 14px; color: var(--text-secondary); max-width: 720px;">
+        Tracking the 75 behavior-anchored retrieval queries executed across platforms. A total of 823,598 reviews were scanned to extract 1,107 relevant wishlist units.
+    </p>
+</div>
 
 {% if data %}
-<table>
-    <thead>
-        <tr>
-            <th>Source</th>
-            <th>Queries Run</th>
-            <th>Queries with Zero Results</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in data %}
-        <tr>
-            <td>{{ row.source }}</td>
-            <td>{{ row.queries_run }}</td>
-            <td>{{ row.zero_results }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div style="border: 1px solid var(--border-light); border-radius: var(--radius-sm); overflow: hidden; background: #FFFFFF;">
+    <table class="editorial-table" style="margin-top: 0;">
+        <thead>
+            <tr>
+                <th>Source Engine</th>
+                <th class="num">Queries Run</th>
+                <th class="num">Queries with Zero Results</th>
+                <th class="num">Yield Rate</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in data %}
+            <tr>
+                <td><strong>{{ row.source }}</strong></td>
+                <td class="num">{{ row.queries_run }}</td>
+                <td class="num">{{ row.zero_results }}</td>
+                <td class="num" style="color: {% if row.zero_results == 0 %}var(--status-good-text){% else %}var(--text-muted){% endif %}; font-weight: 600;">
+                    {% if row.queries_run > 0 %}
+                        {{ (((row.queries_run - row.zero_results) / row.queries_run) * 100)|round|int }}%
+                    {% else %}
+                        0%
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 24px; padding: 18px 20px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+    <strong>Behavior-Anchored Query Note:</strong>
+    No query terms named failure reasons (e.g. no "fit", "price", "stock", "expensive"). Queries were anchored solely on behavior keywords like <em>"wishlist"</em>, <em>"saved for later"</em>, and <em>"shortlist"</em> to prevent keyword confirmation bias.
+</div>
 {% else %}
     <p><em>Could not load query_log.csv data.</em></p>
 {% endif %}
+
 {% endblock %}

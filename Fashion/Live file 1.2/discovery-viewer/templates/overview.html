@@ -1,40 +1,413 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>Overview</h2>
+{% block title %}Overview · Discovery Viewer | Nykaa Fashion Research Lab{% endblock %}
 
-<div class="headline-stats">
-    {% if headline_html %}
-        {{ headline_html | safe }}
-    {% else %}
-        <p><em>retrieval_report.md or Headline section not found.</em></p>
-    {% endif %}
+{% block content %}
+
+<!-- 1. EDITORIAL HERO -->
+<div style="padding-bottom: 32px; border-bottom: 1px solid var(--border-light); margin-bottom: 32px;">
+    <div class="section-eyebrow">CONSUMER INTELLIGENCE ARCHIVE</div>
+    <h1 style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); margin: 6px 0 12px; line-height: 1.2;">
+        Understanding why shoppers hesitate to decide.
+    </h1>
+    <p style="font-size: 15px; line-height: 1.65; color: var(--text-secondary); max-width: 760px; margin-bottom: 24px;">
+        Explore evidence from user interviews, Reddit discussions, Play Store reviews, and a 141-SKU catalog audit to understand the empirical signals influencing fashion purchase confidence.
+    </p>
+    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <a href="#snapshot" class="btn-editorial primary">EXPLORE RESEARCH ↓</a>
+        <a href="/sample" class="btn-editorial secondary">BROWSE RAW CORPUS (1,107 ROWS) →</a>
+        <a href="/report/bias_register" class="btn-editorial secondary">BIAS REGISTER (B1–B10)</a>
+    </div>
 </div>
 
-<hr style="margin: 2rem 0; border: none; border-top: 1px solid #ddd;">
+<!-- 2. RESEARCH SNAPSHOT (Section 6) -->
+<section class="viewer-section" id="snapshot">
+    <div class="section-eyebrow">RESEARCH SNAPSHOT</div>
+    <h2 class="section-h2">Empirical Research Grounding</h2>
+    <p class="section-desc">
+        Actual audited counts across primary user research, multi-platform review retrieval, and catalog audit data. No synthetic or extrapolated figures.
+    </p>
 
-<h3>Source Breakdown</h3>
-<p>Total raw items scanned: <strong>{{ total_rows }}</strong></p>
+    <div class="stat-tiles-grid">
+        <div class="stat-tile">
+            <div class="stat-num">{{ metrics.total_skus }}</div>
+            <div class="stat-label">SKUs Analysed</div>
+            <div class="stat-caption">Tail catalog audit dataset</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-num">{{ metrics.personas }}</div>
+            <div class="stat-label">Shopper Personas</div>
+            <div class="stat-caption">Persistent style profiles</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-num">{{ metrics.interviews }}</div>
+            <div class="stat-label">User Interviews</div>
+            <div class="stat-caption">P01–P07 detailed walk-throughs</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-num">{{ source_stats.get('playstore', 1068) }}</div>
+            <div class="stat-label">Play Store Signals</div>
+            <div class="stat-caption">Myntra, AJIO, Nykaa Fashion</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-num">{{ source_stats.get('serpapi_web', 38) }}</div>
+            <div class="stat-label">Web / Forum Signals</div>
+            <div class="stat-caption">Organic forum discussions</div>
+        </div>
+        <div class="stat-tile">
+            <div class="stat-num">{{ total_rows }}</div>
+            <div class="stat-label">Total Corpus Units</div>
+            <div class="stat-caption">Total raw items scanned: <strong>{{ total_rows }}</strong></div>
+        </div>
+    </div>
 
-{% if breakdown %}
-<table>
-    <thead>
-        <tr>
-            <th>Source</th>
-            <th>Platform Mentioned</th>
-            <th>Count</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for row in breakdown %}
-        <tr>
-            <td>{{ row.source }}</td>
-            <td>{{ row.platform_mentioned }}</td>
-            <td>{{ row.count }}</td>
-        </tr>
+    <div style="background: var(--bg-surface); border: 1px solid var(--border-light); padding: 14px 18px; border-radius: var(--radius-sm); font-size: 12.5px; color: var(--text-secondary); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <div>
+            <strong>7 Out-of-Stock SKUs:</strong> Identified and strictly isolated from customer-facing views (leaving 134 active SKUs).
+        </div>
+        <div style="color: var(--text-muted); font-size: 11.5px;">
+            Audited Scope: 823,598 reviews scanned across 75 behavior-anchored queries.
+        </div>
+    </div>
+</section>
+
+<!-- 3. RESEARCH JOURNEY (Section 7) -->
+<section class="viewer-section" id="journey">
+    <div class="section-eyebrow">RESEARCH JOURNEY</div>
+    <h2 class="section-h2">Evidence-Led Discovery Flow</h2>
+    <p class="section-desc">
+        How primary and secondary research inputs connect directly to product decision architecture. AI is used solely as a synthesis layer over grounded customer data.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 20px;">
+        <div style="border: 1px solid var(--border-light); padding: 18px; background: #FFFFFF; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--nykaa-pink); letter-spacing: 0.1em; margin-bottom: 6px;">01 · INTERVIEWS</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">What shoppers said</div>
+            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                7 in-depth audits (P01–P07) over 16 saved items. Explored why shoppers saved but didn't buy.
+            </div>
+        </div>
+
+        <div style="border: 1px solid var(--border-light); padding: 18px; background: #FFFFFF; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--nykaa-pink); letter-spacing: 0.1em; margin-bottom: 6px;">02 · REDDIT & WEB</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">Public discussions</div>
+            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                Community deliberation on sizing certainty, brand trust transfer, and fabric expectations.
+            </div>
+        </div>
+
+        <div style="border: 1px solid var(--border-light); padding: 18px; background: #FFFFFF; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--nykaa-pink); letter-spacing: 0.1em; margin-bottom: 6px;">03 · PLAY STORE</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">What users experience</div>
+            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                1,068 verified app reviews across Nykaa Fashion, Myntra, and AJIO evaluating wishlist friction.
+            </div>
+        </div>
+
+        <div style="border: 1px solid var(--border-light); padding: 18px; background: #FFFFFF; border-radius: var(--radius-sm);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--nykaa-pink); letter-spacing: 0.1em; margin-bottom: 6px;">04 · CATALOG AUDIT</div>
+            <div style="font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px;">What listings provide</div>
+            <div style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+                141 tail listings line-by-line inspection: checking fabric, measurements, weight, and seller transparency.
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: 16px; padding: 14px 20px; background: #111827; color: #FFFFFF; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+        <div style="font-size: 12.5px;">
+            <span style="color: #F472B6; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;">Synthesised Into</span>
+            <span style="margin: 0 8px; color: #4B5563;">→</span>
+            <strong>DECISION CONFIDENCE:</strong> Resolving product hesitation before checkout in the Nykaa Decide MVP.
+        </div>
+        <div style="font-size: 11px; color: #9CA3AF;">
+            Grounded in empirical evidence
+        </div>
+    </div>
+</section>
+
+<!-- 4. RESEARCH EVIDENCE: 3 EDITORIAL COLUMNS (Section 8) -->
+<section class="viewer-section" id="evidence">
+    <div class="section-eyebrow">EVIDENCE DECONSTRUCTION</div>
+    <h2 class="section-h2">What Helps Shoppers Decide?</h2>
+    <p class="section-desc">
+        Comparing available information at the point of decision. Decision hesitation is concentrated where seller specifications stop and customer evidence is absent.
+    </p>
+
+    <div class="three-col-evidence">
+        <!-- Col 1 -->
+        <div class="evidence-col">
+            <div class="evidence-col-header seller">
+                <span>WHAT THE SELLER SAYS</span>
+                <span class="evidence-badge" style="background:#DBEAFE; color:#1E40AF;">Available</span>
+            </div>
+            <div class="evidence-item">
+                <strong>Product Identity & Claims</strong>
+                Marketing-led titles and brand taglines present on 100% of examined catalog records.
+            </div>
+            <div class="evidence-item">
+                <strong>Fabric Description</strong>
+                Stated for 141 of 141 SKUs (100%), but without verified fibre percentages or fabric weights.
+            </div>
+            <div class="evidence-item">
+                <strong>Fit Descriptor</strong>
+                General silhouette stated for 138 of 141 SKUs (97.9%) — e.g. Regular, Slim, Loose, Relaxed.
+            </div>
+            <div class="evidence-item">
+                <strong>Care Instructions</strong>
+                Washing instructions present on majority of seller product cards.
+            </div>
+        </div>
+
+        <!-- Col 2 -->
+        <div class="evidence-col">
+            <div class="evidence-col-header buyers">
+                <span>WHAT BUYERS SAY</span>
+                <span class="evidence-badge" style="background:var(--nykaa-pink-subtle); color:var(--nykaa-pink);">Scarce (11.3%)</span>
+            </div>
+            <div class="evidence-item">
+                <strong>Customer Ratings</strong>
+                Available on only 16 of 141 SKUs (11.3%). Average rating among rated items is 3.94★.
+            </div>
+            <div class="evidence-item">
+                <strong>Written Review Observations</strong>
+                125 of 141 SKUs (88.7%) have 0 written reviews. Tail items receive almost no peer text.
+            </div>
+            <div class="evidence-item">
+                <strong>Buyer Photos</strong>
+                Zero buyer photos attached on examined tail items, preventing independent visual validation.
+            </div>
+            <div class="evidence-item">
+                <strong>Long-Term Durability</strong>
+                Shrinkage, wash fading, and fabric wear cannot be verified through buyer reviews.
+            </div>
+        </div>
+
+        <!-- Col 3 -->
+        <div class="evidence-col">
+            <div class="evidence-col-header unknown">
+                <span>WHAT WE DON'T KNOW</span>
+                <span class="evidence-badge" style="background:#FEE2E2; color:#991B1B;">Gap</span>
+            </div>
+            <div class="evidence-item">
+                <strong>Flat Garment Measurements</strong>
+                Only 11 of 141 listings (7.8%) provide exact garment measurements in centimeters/inches.
+            </div>
+            <div class="evidence-item">
+                <strong>Fabric Weight / GSM</strong>
+                Stated on 0 of 141 listings (0.0%). Shoppers cannot quantify fabric thickness or seasonal warmth.
+            </div>
+            <div class="evidence-item">
+                <strong>Opacity & Light Transmission</strong>
+                Not stated on any listing. Buyers cannot determine see-through risk for light fabrics.
+            </div>
+            <div class="evidence-item">
+                <strong>Stretch & Drape Recovery</strong>
+                Technical stretch percentage missing on 90%+ of non-denim activewear and bottoms.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 5. CATEGORY INSIGHTS (Section 9) -->
+<section class="viewer-section" id="categories">
+    <div class="section-eyebrow">CATEGORY LANDSCAPE</div>
+    <h2 class="section-h2">Tail SKU Category Distribution</h2>
+    <p class="section-desc">
+        Distribution of audited SKUs across the 6 represented product categories. Topwear and Activewear dominate the tail catalog selection.
+    </p>
+
+    <div class="bar-chart-container">
+        {% for cat in metrics.categories %}
+        <div class="bar-row">
+            <div class="bar-label">{{ cat.name }}</div>
+            <div class="bar-track">
+                <div class="bar-fill" style="width: {{ cat.share * 2.2 }}%;"></div>
+            </div>
+            <div class="bar-value">{{ cat.count }} <span class="bar-share">{{ cat.share }}%</span></div>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
-{% else %}
-    <p><em>Could not load breakdown from corpus_raw.csv.</em></p>
+    </div>
+    <div class="section-source">
+        Source: Tail SKU catalog audit (141 SKUs). Counts represent audited products across fashion categories.
+    </div>
+</section>
+
+<!-- 6. CUSTOMER EVIDENCE CHART (Section 10) -->
+<section class="viewer-section" id="customer-evidence">
+    <div class="section-eyebrow">CUSTOMER EVIDENCE AVAILABILITY</div>
+    <h2 class="section-h2">Review Volume Concentration</h2>
+    <p class="section-desc">
+        Peer evidence availability across the catalog. Over 88% of products have zero customer reviews, demonstrating why purchase assistance cannot depend on review volume alone.
+    </p>
+
+    <div class="bar-chart-container">
+        {% for bucket in metrics.review_buckets %}
+        <div class="bar-row">
+            <div class="bar-label">{{ bucket.label }}</div>
+            <div class="bar-track">
+                <div class="bar-fill {% if bucket.label == 'No reviews' %}tone-mid{% else %}tone-good{% endif %}" style="width: {{ bucket.share }}%;"></div>
+            </div>
+            <div class="bar-value">{{ bucket.count }} <span class="bar-share">{{ bucket.share }}%</span></div>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="section-source">
+        Insight: Only 16 of 141 SKUs have any review evidence. Tail items require structural spec translation and seller verification.
+    </div>
+</section>
+
+<!-- 7. DECISION SIGNALS (Section 11) -->
+<section class="viewer-section" id="signals">
+    <div class="section-eyebrow">DECISION SIGNALS</div>
+    <h2 class="section-h2">Confidence Dimensions in Purchase Decisions</h2>
+    <p class="section-desc">
+        The 4 distinct qualitative dimensions evaluated for each product. Brand trust is evaluated strictly per category rather than as universal brand equity.
+    </p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        {% for sig in metrics.decision_signals %}
+        <div style="border: 1px solid var(--border-light); padding: 18px; border-radius: var(--radius-sm); background: #FFFFFF;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <h3 style="font-size: 14px; font-weight: 700; color: var(--text-primary);">{{ sig.dimension }}</h3>
+                <span class="evidence-badge" style="background: {% if sig.tone == 'good' %}var(--status-good-bg); color:var(--status-good-text);{% elif sig.tone == 'mid' %}var(--status-mid-bg); color:var(--status-mid-text);{% else %}var(--status-low-bg); color:var(--status-low-text);{% endif %}">
+                    {{ sig.tone|upper }}
+                </span>
+            </div>
+            <p style="font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                {{ sig.detail }}
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+    <div class="section-source">
+        Key Architectural Principle: Brand trust does not transfer automatically across unrelated categories. Familiarity with a footwear brand does not create trust in its ethnicwear.
+    </div>
+</section>
+
+<!-- 8. RESEARCH INSIGHT CARDS (Section 12) -->
+<section class="viewer-section" id="insights">
+    <div class="section-eyebrow">KEY RESEARCH FINDINGS</div>
+    <h2 class="section-h2">Empirical Research Signals</h2>
+    <p class="section-desc">
+        Verbatim customer signals and grounded observations from user interviews and catalog audits.
+    </p>
+
+    <div class="insight-cards-grid">
+        <div class="insight-card">
+            <div>
+                <div class="signal-tag">INTERVIEW SIGNAL · P02</div>
+                <div class="quote-text">“I trust the brand, but I’m still unsure about this particular product.”</div>
+            </div>
+            <div class="insight-detail">
+                <strong>SKU Confidence ≠ Brand Confidence.</strong> Even established brands leave shoppers uncertain when listing specifications and measurements are omitted.
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <div>
+                <div class="signal-tag">CATALOG AUDIT SIGNAL</div>
+                <div class="quote-text">Listings describe material type, but omit garment measurements and weight entirely.</div>
+            </div>
+            <div class="insight-detail">
+                Fabric stated on 141 SKUs (100%), but garment measurements present on only 11 (7.8%) and fabric weight on 0 (0.0%).
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <div>
+                <div class="signal-tag">PRIMARY WALK-THROUGH SIGNAL</div>
+                <div class="quote-text">Wishlists stall from decision uncertainty, not out-of-stock items.</div>
+            </div>
+            <div class="insight-detail">
+                22 of 22 walked-through wishlist items were in stock in the buyer’s size, and 21 of 22 were still actively wanted.
+            </div>
+        </div>
+
+        <div class="insight-card">
+            <div>
+                <div class="signal-tag">SYNTHESIS SIGNAL</div>
+                <div class="quote-text">Confidence is constrained by information gaps, not negative sentiment.</div>
+            </div>
+            <div class="insight-detail">
+                Low purchase confidence is caused by missing specifications and absent peer reviews rather than critical buyer complaints.
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 9. HYPOTHESIS STATUS (Section 13) -->
+<section class="viewer-section" id="hypotheses">
+    <div class="section-eyebrow">HYPOTHESIS → EVIDENCE → DECISION</div>
+    <h2 class="section-h2">Research Hypotheses & Validation Status</h2>
+    <p class="section-desc">
+        Rigorous tracking of core product hypotheses against empirical research findings. Rejected hypotheses are recorded transparently as key learnings.
+    </p>
+
+    <div class="hypotheses-list">
+        {% for h in metrics.hypotheses %}
+        <div class="hypo-card">
+            <div>
+                <div class="hypo-badge {{ h.status|lower }}">{{ h.status }}</div>
+                <div style="font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; font-weight: 600;">CLAIM {{ h.num }}</div>
+            </div>
+            <div class="hypo-content">
+                <div class="hypo-claim">{{ h.claim }}</div>
+                <div class="hypo-found">{{ h.found }}</div>
+                <div class="hypo-meta">
+                    <span><strong>Source:</strong> {{ h.src }}</span>
+                    <span><strong>Evidence:</strong> {{ h.supported_by|join(', ') }}</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- 10. RETRIEVAL & CORPUS BREAKDOWN (Preserving existing tables for tests) -->
+<section class="viewer-section" id="breakdown">
+    <div class="section-eyebrow">DATASET REPOSITORIES</div>
+    <h2 class="section-h2">Corpus Breakdown by Platform</h2>
+    <p class="section-desc">
+        Total units retained in the multi-source evidence corpus, segmented by platform mentioned and origin source.
+    </p>
+
+    {% if breakdown %}
+    <table class="editorial-table">
+        <thead>
+            <tr>
+                <th>Origin Source</th>
+                <th>Platform Mentioned</th>
+                <th class="num">Evidence Units</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in breakdown %}
+            <tr>
+                <td><strong>{{ row.source }}</strong></td>
+                <td>{{ row.platform_mentioned }}</td>
+                <td class="num">{{ row.count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+        <p><em>Could not load breakdown from corpus_raw.csv.</em></p>
+    {% endif %}
+
+    <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="/sample" class="btn-editorial primary">Explore Corpus Data Table →</a>
+        <a href="/query_log" class="btn-editorial secondary">View Query Logs (75 Queries) →</a>
+        <a href="/report/retrieval_report" class="btn-editorial secondary">Read Full Retrieval Report →</a>
+    </div>
+</section>
+
+<!-- 11. HEADLINE ARCHIVE -->
+{% if headline_html %}
+<section class="viewer-section">
+    <div class="section-eyebrow">HEADLINE RETRIEVAL REPORT</div>
+    <div class="markdown-body" style="background: var(--bg-surface); border: 1px solid var(--border-light); padding: 24px; border-radius: var(--radius-sm); margin-top: 12px;">
+        {{ headline_html | safe }}
+    </div>
+</section>
 {% endif %}
+
 {% endblock %}

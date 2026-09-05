@@ -3,159 +3,781 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Wishlist Discovery Viewer</title>
+    <title>{% block title %}Discovery Viewer | Nykaa Fashion Research Lab{% endblock %}</title>
+    <meta name="description" content="Nykaa Fashion Discovery Viewer: AI-assisted consumer research synthesis exploring why shoppers hesitate to decide.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg: #f8f9fa;
-            --text: #333;
-            --nav-bg: #2c3e50;
-            --nav-text: #fff;
-            --link: #3498db;
-            --border: #ddd;
+            --bg-primary: #FFFFFF;
+            --bg-surface: #F9FAFB;
+            --bg-subtle: #F3F4F6;
+            --border-light: #E5E7EB;
+            --border-subtle: #F0F2F5;
+
+            --text-primary: #111827;
+            --text-secondary: #4B5563;
+            --text-muted: #828894;
+            --text-on-dark: #FFFFFF;
+
+            --nykaa-pink: #E80071;
+            --nykaa-pink-hover: #CC0063;
+            --nykaa-pink-subtle: #FDF2F7;
+            --nykaa-pink-border: #FBCFE8;
+
+            --status-good-text: #0E7C5A;
+            --status-good-bg: #E7F5EE;
+            --status-mid-text: #B7791F;
+            --status-mid-bg: #FBF1DE;
+            --status-low-text: #C0392B;
+            --status-low-bg: #FDECEC;
+
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --radius-sm: 3px;
+            --radius-md: 5px;
+            --sidebar-width: 270px;
         }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            line-height: 1.6;
-            color: var(--text);
-            background: var(--bg);
+
+        *, *::before, *::after {
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
-        nav {
-            background: var(--nav-bg);
-            padding: 1rem;
+
+        html {
+            scroll-behavior: smooth;
         }
-        nav a {
-            color: var(--nav-text);
+
+        body {
+            font-family: var(--font-main);
+            color: var(--text-primary);
+            background-color: var(--bg-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* Top Brand Utility Strip */
+        .top-brand-strip {
+            background: #111827;
+            color: #9CA3AF;
+            font-size: 11px;
+            letter-spacing: 0.08em;
+            padding: 8px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #1F2937;
+        }
+        .top-brand-strip .brand-name {
+            color: #FFFFFF;
+            font-weight: 700;
+            letter-spacing: 0.15em;
+        }
+        .top-brand-strip .brand-tagline {
+            color: #D1D5DB;
+        }
+        .top-brand-strip .env-badge {
+            display: inline-block;
+            background: rgba(232, 0, 113, 0.18);
+            color: #F472B6;
+            padding: 2px 6px;
+            border-radius: var(--radius-sm);
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        /* Primary Header */
+        .app-header {
+            background: #FFFFFF;
+            border-bottom: 1px solid var(--border-light);
+            padding: 20px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        .app-title-group h1 {
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .app-title-group h1 .lab-pill {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            background: var(--nykaa-pink-subtle);
+            color: var(--nykaa-pink);
+            border: 1px solid var(--nykaa-pink-border);
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .app-title-group .app-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 2px;
+            font-weight: 400;
+        }
+        .app-header-meta {
+            text-align: right;
+            font-size: 11.5px;
+            color: var(--text-muted);
+        }
+        .app-header-meta strong {
+            color: var(--text-primary);
+        }
+
+        /* App Workspace Layout */
+        .workspace-layout {
+            display: flex;
+            min-height: calc(100vh - 105px);
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-light);
+            padding: 24px 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .nav-section-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin: 20px 12px 6px;
+        }
+        .nav-section-label:first-of-type {
+            margin-top: 0;
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 12px;
+            color: var(--text-secondary);
             text-decoration: none;
-            margin-right: 1.5rem;
+            font-size: 13px;
             font-weight: 500;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
         }
-        nav a:hover {
-            text-decoration: underline;
+        .nav-link:hover {
+            background: #EDF0F3;
+            color: var(--text-primary);
         }
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            border-radius: 8px;
+        .nav-link.active {
+            background: #FFFFFF;
+            color: var(--nykaa-pink);
+            font-weight: 600;
+            border-left: 3px solid var(--nykaa-pink);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        .nav-link .link-count {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+        .nav-link.active .link-count {
+            color: var(--nykaa-pink);
+        }
+
+        .sidebar-footer {
+            margin-top: 32px;
+            padding: 16px 12px 0;
+            border-top: 1px solid var(--border-light);
+            font-size: 11px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .sidebar-footer strong {
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Main Workspace Content */
+        .main-workspace {
+            flex: 1;
+            min-width: 0;
+            background: var(--bg-primary);
+            padding: 40px 48px 80px;
+            max-width: 1100px;
+        }
+
+        /* Section Containers */
+        .viewer-section {
+            padding: 36px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .viewer-section:last-child {
+            border-bottom: none;
+        }
+        .section-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--nykaa-pink);
+            margin-bottom: 6px;
+        }
+        .section-h2 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+        .section-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            max-width: 720px;
+            margin-bottom: 24px;
+        }
+        .section-source {
+            font-size: 11.5px;
+            color: var(--text-muted);
+            margin-top: 16px;
+            font-style: italic;
+        }
+
+        /* Editorial Stat Tiles */
+        .stat-tiles-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1px;
+            background: var(--border-light);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            margin-bottom: 24px;
+        }
+        .stat-tile {
+            background: #FFFFFF;
+            padding: 18px 20px;
+        }
+        .stat-tile .stat-num {
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+        .stat-tile .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-top: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .stat-tile .stat-caption {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            line-height: 1.4;
+        }
+
+        /* Horizontal Bars (Research Exhibits) */
+        .bar-chart-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            background: #FFFFFF;
+            border: 1px solid var(--border-light);
+            padding: 20px;
+            border-radius: var(--radius-sm);
+        }
+        .bar-row {
+            display: grid;
+            grid-template-columns: 180px 1fr 90px;
+            align-items: center;
+            gap: 16px;
+        }
+        .bar-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-align: right;
+        }
+        .bar-track {
+            height: 22px;
+            background: var(--bg-subtle);
+            border-radius: 2px;
             overflow: hidden;
-            padding-bottom: 2rem;
+            position: relative;
         }
-        .content {
-            padding: 2rem;
+        .bar-fill {
+            height: 100%;
+            background: var(--nykaa-pink);
+            border-radius: 2px;
+            transition: width 0.4s ease-out;
         }
-        table {
+        .bar-fill.tone-good { background: var(--status-good-text); }
+        .bar-fill.tone-mid  { background: var(--status-mid-text); }
+        .bar-fill.tone-low  { background: #9CA3AF; }
+        .bar-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+        .bar-share {
+            font-size: 11px;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+
+        /* Editorial 3-Column Evidence Layout */
+        .three-col-evidence {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .evidence-col {
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 20px;
+            background: #FFFFFF;
+        }
+        .evidence-col-header {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-light);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .evidence-col-header.seller { color: #1E3A8A; }
+        .evidence-col-header.buyers { color: var(--nykaa-pink); }
+        .evidence-col-header.unknown { color: #4B5563; }
+
+        .evidence-item {
+            margin-bottom: 12px;
+            font-size: 12.5px;
+            line-height: 1.5;
+            color: var(--text-secondary);
+        }
+        .evidence-item strong {
+            color: var(--text-primary);
+            display: block;
+            font-size: 13px;
+            margin-bottom: 2px;
+        }
+        .evidence-badge {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 2px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+
+        /* Hypothesis Cards */
+        .hypotheses-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .hypo-card {
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 18px 20px;
+            background: #FFFFFF;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        .hypo-badge {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-align: center;
+            padding: 5px 8px;
+            border-radius: var(--radius-sm);
+            text-transform: uppercase;
+        }
+        .hypo-badge.accepted {
+            background: var(--status-good-bg);
+            color: var(--status-good-text);
+            border: 1px solid #A7F3D0;
+        }
+        .hypo-badge.modified {
+            background: var(--status-mid-bg);
+            color: var(--status-mid-text);
+            border: 1px solid #FDE68A;
+        }
+        .hypo-badge.rejected {
+            background: var(--status-low-bg);
+            color: var(--status-low-text);
+            border: 1px solid #FECACA;
+        }
+        .hypo-content .hypo-claim {
+            font-size: 14.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+        .hypo-content .hypo-found {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.55;
+            margin-bottom: 8px;
+        }
+        .hypo-content .hypo-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            gap: 16px;
+            font-style: italic;
+        }
+
+        /* Insight Quote Cards */
+        .insight-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .insight-card {
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            padding: 22px;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .insight-card .quote-text {
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+            line-height: 1.5;
+            margin-bottom: 14px;
+        }
+        .insight-card .signal-tag {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--nykaa-pink);
+            margin-bottom: 4px;
+        }
+        .insight-card .insight-detail {
+            font-size: 12.5px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Editorial Tables */
+        table.editorial-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 1rem;
+            font-size: 13px;
+            margin-top: 12px;
         }
-        th, td {
-            padding: 0.75rem;
-            border-bottom: 1px solid var(--border);
+        table.editorial-table th {
             text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 10px 14px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-light);
+            border-top: 1px solid var(--border-light);
         }
-        th {
-            background: #f1f3f5;
+        table.editorial-table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+        }
+        table.editorial-table tr:hover td {
+            background-color: #FAFBFD;
+        }
+        table.editorial-table td.num, table.editorial-table th.num {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Buttons & Controls */
+        .btn-editorial {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+        .btn-editorial.primary {
+            background: var(--nykaa-pink);
+            color: #FFFFFF;
+            border: 1px solid var(--nykaa-pink);
+        }
+        .btn-editorial.primary:hover {
+            background: var(--nykaa-pink-hover);
+        }
+        .btn-editorial.secondary {
+            background: #FFFFFF;
+            color: var(--text-primary);
+            border: 1px solid var(--border-light);
+        }
+        .btn-editorial.secondary:hover {
+            background: var(--bg-subtle);
+        }
+
+        /* Markdown report rendering */
+        .markdown-body {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text-primary);
+        }
+        .markdown-body h1 {
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+            margin: 0 0 16px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-light);
+        }
+        .markdown-body h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 28px 0 12px;
+            color: var(--text-primary);
+        }
+        .markdown-body h3 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 20px 0 8px;
+        }
+        .markdown-body p {
+            margin-bottom: 16px;
+        }
+        .markdown-body ul, .markdown-body ol {
+            margin: 0 0 16px 24px;
+        }
+        .markdown-body li {
+            margin-bottom: 6px;
+        }
+        .markdown-body blockquote {
+            border-left: 3px solid var(--nykaa-pink);
+            padding: 10px 16px;
+            background: var(--bg-surface);
+            color: var(--text-secondary);
+            margin: 16px 0;
+            font-size: 13.5px;
+        }
+        .markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 20px 0;
+        }
+        .markdown-body th {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-light);
+            padding: 9px 12px;
+            text-align: left;
             font-weight: 600;
         }
-        tr:hover {
-            background: #f8f9fa;
+        .markdown-body td {
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 10px 12px;
         }
-        .text-truncate {
-            display: inline-block;
-            max-width: 100%;
-        }
-        .show-more-btn {
-            background: none;
-            border: none;
-            color: var(--link);
-            cursor: pointer;
-            padding: 0;
-            font-size: 0.9em;
-            margin-left: 0.5rem;
-        }
-        .full-text {
-            display: none;
-        }
-        .search-form {
-            margin-bottom: 1.5rem;
+
+        /* Search input */
+        .search-container {
             display: flex;
-            gap: 0.5rem;
+            gap: 8px;
+            margin-bottom: 20px;
         }
-        .search-form input {
-            padding: 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 4px;
+        .search-container input {
+            padding: 9px 14px;
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
             flex-grow: 1;
-            max-width: 400px;
+            max-width: 480px;
+            outline: none;
+            transition: border-color 0.15s;
         }
-        .search-form button {
-            padding: 0.5rem 1rem;
-            background: var(--nav-bg);
-            color: #fff;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+        .search-container input:focus {
+            border-color: var(--nykaa-pink);
+            box-shadow: 0 0 0 1px var(--nykaa-pink);
         }
-        .pagination {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-            margin-top: 1rem;
-        }
-        .pagination a {
-            padding: 0.5rem 1rem;
-            background: #e9ecef;
-            color: var(--text);
-            text-decoration: none;
-            border-radius: 4px;
-        }
-        .pagination a:hover {
-            background: #dee2e6;
-        }
-        .message-box {
-            padding: 1.5rem;
-            background: #e9ecef;
-            border-radius: 4px;
-            margin-bottom: 1rem;
-            text-align: center;
-            color: #555;
-        }
-    </style>
-</head>
-<body>
-    <nav>
-        <a href="/">Overview</a>
-        <a href="/sample">Sample Table</a>
-        <a href="/query_log">Query Logs</a>
-        <a href="/report/bias_register">Bias Register</a>
-        <a href="/report/adversarial_report">Adversarial Report</a>
-        <a href="/validation">Validation</a>
-    </nav>
-    <div class="container">
-        <div class="content">
-            {% block content %}{% endblock %}
-        </div>
-    </div>
-    <script>
-        function toggleText(btn) {
-            const container = btn.parentElement;
-            const shortText = container.querySelector('.short-text');
-            const fullText = container.querySelector('.full-text');
-            
-            if (fullText.style.display === 'none' || fullText.style.display === '') {
-                shortText.style.display = 'none';
-                fullText.style.display = 'inline';
-                btn.textContent = 'show less';
-            } else {
-                shortText.style.display = 'inline';
-                fullText.style.display = 'none';
-                btn.textContent = 'show more';
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .workspace-layout {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-light);
+                padding: 16px 20px;
+            }
+            .main-workspace {
+                padding: 24px 20px;
+            }
+            .three-col-evidence {
+                grid-template-columns: 1fr;
+            }
+            .hypo-card {
+                grid-template-columns: 1fr;
+            }
+            .bar-row {
+                grid-template-columns: 120px 1fr 70px;
             }
         }
-    </script>
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- 1. Top Brand Utility Strip -->
+    <header class="top-brand-strip">
+        <div>
+            <span class="brand-name">NYKAA FASHION</span>
+            <span style="margin: 0 8px; color: #4B5563;">|</span>
+            <span class="brand-tagline">RESEARCH & DISCOVERY ARCHIVE</span>
+            <span class="env-badge">V1.1 AUDITED</span>
+        </div>
+        <div style="font-size: 11px;">
+            <span>Consumer Intelligence</span> · <span>India E-Commerce Study</span>
+        </div>
+    </header>
+
+    <!-- 2. Primary Header -->
+    <div class="app-header">
+        <div class="app-title-group">
+            <h1>
+                DISCOVERY VIEWER
+                <span class="lab-pill">Research Lab</span>
+            </h1>
+            <div class="app-subtitle">AI-assisted consumer research synthesis</div>
+        </div>
+        <div class="app-header-meta">
+            <div>Scope: <strong>141 Audited SKUs · 1,107 Evidence Units</strong></div>
+            <div style="margin-top: 2px;">Focus: <strong>Wishlist Non-Conversion & Purchase Hesitation</strong></div>
+        </div>
+    </div>
+
+    <!-- 3. Workspace Layout -->
+    <div class="workspace-layout">
+
+        <!-- Left Research Navigation -->
+        <aside class="sidebar">
+            <div>
+                <div class="nav-section-label">Navigation</div>
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">
+                    <span>Overview</span>
+                    <span class="link-count">1,107 units</span>
+                </a>
+
+                <div class="nav-section-label">Research Synthesis</div>
+                <a href="/#journey" class="nav-link">
+                    <span>Research Journey</span>
+                </a>
+                <a href="/#snapshot" class="nav-link">
+                    <span>Research Snapshot</span>
+                    <span class="link-count">141 SKUs</span>
+                </a>
+                <a href="/#evidence" class="nav-link">
+                    <span>What Helps Decide?</span>
+                    <span class="link-count">3 Columns</span>
+                </a>
+                <a href="/#categories" class="nav-link">
+                    <span>Category Landscape</span>
+                    <span class="link-count">6 Categories</span>
+                </a>
+                <a href="/#customer-evidence" class="nav-link">
+                    <span>Customer Evidence</span>
+                    <span class="link-count">Review Volume</span>
+                </a>
+                <a href="/#signals" class="nav-link">
+                    <span>Decision Signals</span>
+                    <span class="link-count">4 Dimensions</span>
+                </a>
+                <a href="/#insights" class="nav-link">
+                    <span>Key Findings</span>
+                    <span class="link-count">4 Signals</span>
+                </a>
+                <a href="/#hypotheses" class="nav-link">
+                    <span>Hypothesis Status</span>
+                    <span class="link-count">4 Claims</span>
+                </a>
+
+                <div class="nav-section-label">Evidence Repositories</div>
+                <a href="/sample" class="nav-link {% if request.path == '/sample' %}active{% endif %}">
+                    <span>Raw Evidence Corpus</span>
+                    <span class="link-count">1,107 rows</span>
+                </a>
+                <a href="/query_log" class="nav-link {% if request.path == '/query_log' %}active{% endif %}">
+                    <span>Query Yield Logs</span>
+                    <span class="link-count">75 Queries</span>
+                </a>
+
+                <div class="nav-section-label">Methodology & Bias</div>
+                <a href="/report/bias_register" class="nav-link {% if request.path == '/report/bias_register' %}active{% endif %}">
+                    <span>Bias Register</span>
+                    <span class="link-count">B1–B10</span>
+                </a>
+                <a href="/report/adversarial_report" class="nav-link {% if request.path == '/report/adversarial_report' %}active{% endif %}">
+                    <span>Adversarial Testing</span>
+                    <span class="link-count">9/11 Passed</span>
+                </a>
+                <a href="/report/retrieval_report" class="nav-link {% if request.path == '/report/retrieval_report' %}active{% endif %}">
+                    <span>Retrieval Report</span>
+                    <span class="link-count">Specification</span>
+                </a>
+                <a href="/validation" class="nav-link {% if request.path == '/validation' %}active{% endif %}">
+                    <span>Model Validation</span>
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <strong>Nykaa Fashion Research Lab</strong>
+                AI is the synthesis layer, not the source of truth. Grounded in primary customer data.
+            </div>
+        </aside>
+
+        <!-- Right / Main Content Workspace -->
+        <main class="main-workspace">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

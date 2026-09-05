@@ -1,7 +1,33 @@
 {% extends "base.html" %}
+{% block title %}{{ title }} · Discovery Viewer | Nykaa Fashion Research Lab{% endblock %}
+
 {% block content %}
-<h2>{{ title }}</h2>
-<div class="markdown-body">
+
+<div style="margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border-light);">
+    <div class="section-eyebrow">RESEARCH METHODOLOGY EXHIBIT</div>
+    <h1 style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 4px 0 8px;">{{ title }}</h1>
+    <p style="font-size: 13.5px; color: var(--text-secondary);">
+        {% if report_key == 'bias_register' %}
+            Formal audit of 10 known, named distortions in the evidence corpus. Biases pulling opposite directions on the same gate are declared and interpreted separately rather than averaged.
+        {% elif report_key == 'adversarial_report' %}
+            Verification of Gemini 3.7 Flash taxonomy classifier against 11 adversarial edge cases. Result: 9/11 passed (0 taxonomy classification failures; 2 transient transport rate-limits).
+        {% else %}
+            Technical specification and corpus retrieval audit report.
+        {% endif %}
+    </p>
+</div>
+
+<div class="markdown-body" style="background: #FFFFFF; border: 1px solid var(--border-light); padding: 32px; border-radius: var(--radius-sm);">
     {{ html_content | safe }}
 </div>
+
+<div style="margin-top: 24px; display: flex; gap: 12px;">
+    <a href="/" class="btn-editorial secondary">← Back to Overview</a>
+    {% if report_key == 'bias_register' %}
+        <a href="/report/adversarial_report" class="btn-editorial primary">View Adversarial Testing Report →</a>
+    {% else %}
+        <a href="/report/bias_register" class="btn-editorial primary">View Bias Register →</a>
+    {% endif %}
+</div>
+
 {% endblock %}

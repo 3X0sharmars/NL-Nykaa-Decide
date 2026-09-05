@@ -1,7 +1,15 @@
 {% extends "base.html" %}
+{% block title %}Notice · Discovery Viewer | Nykaa Fashion Research Lab{% endblock %}
+
 {% block content %}
-<h2>Error</h2>
-<div class="message-box">
-    {{ message }}
+
+<div style="padding: 40px 32px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); max-width: 600px; margin: 40px auto; text-align: center;">
+    <div style="font-size: 11px; font-weight: 700; color: var(--nykaa-pink); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px;">RESEARCH ARCHIVE NOTICE</div>
+    <h2 style="font-size: 20px; font-weight: 700; color: var(--text-primary); margin-bottom: 12px;">Evidence Unit Not Found</h2>
+    <p style="font-size: 14px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+        {{ message }}
+    </p>
+    <a href="/" class="btn-editorial primary">← Return to Overview</a>
 </div>
+
 {% endblock %}

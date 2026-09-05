@@ -1,69 +1,115 @@
 {% extends "base.html" %}
-{% block content %}
-<h2>Corpus Sample Table</h2>
+{% block title %}Raw Evidence Corpus · Discovery Viewer | Nykaa Fashion Research Lab{% endblock %}
 
-<form class="search-form" method="GET" action="/sample">
-    <input type="text" name="q" value="{{ q }}" placeholder="Search text...">
-    <button type="submit">Search</button>
+{% block content %}
+
+<div style="margin-bottom: 24px;">
+    <div class="section-eyebrow">PRIMARY EVIDENCE DATABASE</div>
+    <h1 style="font-size: 26px; font-weight: 700; color: var(--text-primary); margin: 4px 0 8px;">Corpus Sample Table</h1>
+    <p style="font-size: 14px; color: var(--text-secondary); max-width: 720px;">
+        Browse the 1,107 behavior-anchored customer review units retrieved across Nykaa Fashion, Myntra, and AJIO. Text is stored unmanipulated with exact source hashes.
+    </p>
+</div>
+
+<!-- Search Input -->
+<form class="search-container" method="GET" action="/sample">
+    <input type="text" name="q" value="{{ q }}" placeholder="Search customer review text (e.g. wishlist, fit, size, fabric)...">
+    <button type="submit" class="btn-editorial primary">Search</button>
     {% if q %}
-        <a href="/sample" style="padding: 0.5rem; text-decoration: none; color: #666;">Clear</a>
+        <a href="/sample" class="btn-editorial secondary">Clear</a>
     {% endif %}
 </form>
 
-<p>Showing {{ data|length }} rows on this page (total matches: {{ total_rows }}).</p>
+<div style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; font-weight: 500;">
+    Showing {{ data|length }} rows on this page (total matches: {{ total_rows }}).
+</div>
 
 {% if data %}
-<div style="overflow-x: auto;">
-    <table>
+<div style="overflow-x: auto; border: 1px solid var(--border-light); border-radius: var(--radius-sm); background: #FFFFFF;">
+    <table class="editorial-table" style="margin-top: 0;">
         <thead>
             <tr>
-                <th>Unit ID</th>
-                <th>Source</th>
-                <th>Source Detail</th>
-                <th>Platform</th>
-                <th>Text</th>
-                <th>Retrieved At</th>
+                <th style="width: 140px;">Unit ID</th>
+                <th style="width: 110px;">Source</th>
+                <th style="width: 140px;">Platform</th>
+                <th>Verbatim Customer Text</th>
+                <th style="width: 150px;">Retrieved At</th>
             </tr>
         </thead>
         <tbody>
             {% for row in data %}
             <tr>
-                <td>{{ row.unit_id }}</td>
-                <td>{{ row.source }}</td>
-                <td>{{ row.source_detail }}</td>
-                <td>{{ row.platform_mentioned }}</td>
-                <td style="min-width: 300px; max-width: 500px;">
+                <td style="font-family: monospace; font-size: 11.5px; color: var(--text-muted);">{{ row.unit_id }}</td>
+                <td>
+                    <span class="evidence-badge" style="background: var(--bg-subtle); color: var(--text-secondary);">
+                        {{ row.source }}
+                    </span>
+                </td>
+                <td>
+                    <strong style="font-size: 12.5px; color: {% if row.platform_mentioned == 'Nykaa Fashion' %}var(--nykaa-pink){% else %}var(--text-primary){% endif %};">
+                        {{ row.platform_mentioned }}
+                    </strong>
+                </td>
+                <td style="min-width: 320px; line-height: 1.55;">
                     {% set text_val = row.text|string %}
-                    {% if text_val|length > 200 %}
+                    {% if text_val|length > 180 %}
                         <div>
-                            <span class="short-text">{{ text_val[:200] }}...</span>
-                            <span class="full-text">{{ text_val }}</span>
-                            <button class="show-more-btn" onclick="toggleText(this)">show more</button>
+                            <span class="short-text">{{ text_val[:180] }}...</span>
+                            <span class="full-text" style="display: none;">{{ text_val }}</span>
+                            <button class="show-more-btn" onclick="toggleText(this)" style="background:none; border:none; color:var(--nykaa-pink); font-size:11px; font-weight:600; cursor:pointer; margin-left:6px; padding:0;">show more</button>
                         </div>
                     {% else %}
                         {{ text_val }}
                     {% endif %}
                 </td>
-                <td style="white-space: nowrap;">{{ row.retrieved_at }}</td>
+                <td style="white-space: nowrap; font-size: 11.5px; color: var(--text-muted); font-variant-numeric: tabular-nums;">
+                    {{ row.retrieved_at }}
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
-<div class="pagination">
-    {% if page > 1 %}
-        <a href="/sample?page={{ page - 1 }}{% if q %}&q={{ q }}{% endif %}">&laquo; Previous</a>
-    {% endif %}
-    
-    <span>Page {{ page }} of {{ total_pages }}</span>
-    
-    {% if page < total_pages %}
-        <a href="/sample?page={{ page + 1 }}{% if q %}&q={{ q }}{% endif %}">Next &raquo;</a>
-    {% endif %}
+<!-- Pagination -->
+<div style="display: flex; gap: 8px; align-items: center; justify-content: space-between; margin-top: 20px; flex-wrap: wrap;">
+    <div style="display: flex; gap: 8px;">
+        {% if page > 1 %}
+            <a href="/sample?page={{ page - 1 }}{% if q %}&q={{ q }}{% endif %}" class="btn-editorial secondary">&laquo; Previous</a>
+        {% endif %}
+
+        {% if page < total_pages %}
+            <a href="/sample?page={{ page + 1 }}{% if q %}&q={{ q }}{% endif %}" class="btn-editorial secondary">Next &raquo;</a>
+        {% endif %}
+    </div>
+    <div style="font-size: 12.5px; color: var(--text-muted);">
+        Page <strong>{{ page }}</strong> of <strong>{{ total_pages }}</strong>
+    </div>
 </div>
+
 {% else %}
-    <div class="message-box">No records found.</div>
+<div style="padding: 32px; background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--radius-sm); text-align: center; color: var(--text-secondary);">
+    <p>No matching evidence records found for "{{ q }}".</p>
+    <a href="/sample" class="btn-editorial secondary" style="margin-top: 12px;">Reset search filters</a>
+</div>
 {% endif %}
+
+<script>
+    function toggleText(btn) {
+        const container = btn.parentElement;
+        const shortText = container.querySelector('.short-text');
+        const fullText = container.querySelector('.full-text');
+
+        if (fullText.style.display === 'none' || fullText.style.display === '') {
+            shortText.style.display = 'none';
+            fullText.style.display = 'inline';
+            btn.textContent = 'show less';
+        } else {
+            shortText.style.display = 'inline';
+            fullText.style.display = 'none';
+            btn.textContent = 'show more';
+        }
+    }
+</script>
 
 {% endblock %}
